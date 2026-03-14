@@ -1,0 +1,974 @@
+<!doctype html>
+<html class="h-full w-full">
+   <!--
+     
+   HEAD SECTION
+     
+   -->
+   <head>
+      <title><%= name %></title>
+      <% if (logo == true) { %>
+         <link rel="icon" href="/assets/logo.png" type="image/x-icon">
+      <% }  else { %>
+         <link rel="icon" href="https://i.imgur.com/uvDunAR.png" type="image/x-icon">
+      <% } %>
+
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta content="<%= ogTitle %>" property="og:title">
+      <meta content="<%= ogDescription %>" property="og:description">
+      <link href="/assets/tailwind.css" rel="stylesheet">
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+   </head>
+   <body style="font-family: 'Public Sans'" class="<%= theme['paneltheme-color'] %> h-full w-full" id="main-body">
+      <div>
+      <!-- Background Image/Video Support -->
+      <% if (typeof theme !== 'undefined' && theme['background-image']) { %>
+      <style>
+        #main-body {
+          position: relative;
+        }
+        #main-body::before {
+          content: '';
+          position: fixed;
+          inset: 0;
+          z-index: -1;
+          background-image: url('<%= theme["background-image"] %>');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          opacity: 0.18;
+          pointer-events: none;
+        }
+      </style>
+      <% } %>
+      <!-- Todo : remove this style for tailwind css-->
+      <style>
+
+         .sidebar nav ul {
+            position: relative;
+         }
+         .nav-link {
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            transition: color 0.2s ease, background 0.2s ease !important;
+         }
+         .nav-link::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 0.75rem;
+            background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 60%, rgba(255,255,255,0.08) 100%);
+            backdrop-filter: blur(6px) saturate(1.4);
+            border: 1px solid rgba(255,255,255,0.10);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 16px rgba(0,0,0,0.15);
+            opacity: 0;
+            transition: opacity 0.22s cubic-bezier(0.22,1,0.36,1), transform 0.22s cubic-bezier(0.22,1,0.36,1);
+            transform: scale(0.96);
+            pointer-events: none;
+            z-index: -1;
+         }
+         .nav-link:hover::after {
+            opacity: 1;
+            transform: scale(1);
+         }
+         .nav-link:hover {
+            color: white !important;
+         }
+         .nav-link.active {
+            color: white;
+            font-weight: 500;
+         }
+         @media (max-width: 1024px) {
+            .sidebar {
+               display: none;
+               position: fixed;
+               z-index: 50;
+               height: 100%;
+               width: 80%;
+               background-color: #101010;
+               overflow-y: auto;
+               transform: translateX(-100%);
+               transition: transform 0.3s ease-in-out;
+            }
+            .sidebar.open {
+               display: block;
+               transform: translateX(0);
+            }
+            .sidebar.expanded {
+               width: 100%;
+            }
+         }
+         
+
+
+
+      </style>
+<script>
+  // Detect if panel theme is light and add class for CSS targeting
+  (function(){
+    var body = document.body;
+    var bg = window.getComputedStyle(body).backgroundColor;
+    var m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (m) {
+      var r=+m[1],g=+m[2],b=+m[3];
+      var lum = 0.299*r + 0.587*g + 0.114*b;
+      if (lum > 100) body.classList.add('theme-light');
+      else body.classList.add('theme-dark');
+    } else {
+      body.classList.add('theme-dark');
+    }
+  })();
+
+   document.addEventListener('DOMContentLoaded', () => {
+      const loader = document.getElementById('loader');
+      const content = document.getElementById('content');
+
+      // Reset any stale inline styles left by nav animation before redirect
+      if (content) {
+        content.style.opacity = '';
+        content.style.transform = '';
+        content.style.transition = '';
+      }
+
+      setTimeout(() => {
+         loader.classList.add('opacity-0');
+         if (content) {
+           content.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+           content.style.opacity = '1';
+           content.style.transform = 'translateY(0)';
+           content.classList.add('opacity-100');
+         }
+         setTimeout(() => { loader.style.display = 'none'; }, 400);
+      }, 200);
+   });
+</script>
+
+<script>
+   document.addEventListener('DOMContentLoaded', () => {
+      const sidebar = document.getElementById('pc-sidebar');
+      const sidebar2 = document.getElementById('pc-sidebar2');
+      const colcont = document.getElementById('colcont');
+
+      if ('<%= theme["sidebar-direction"] %>' === 'right') {
+         sidebar.classList.add('right-0');
+         colcont.classList.add('colcontextream');
+         colcont.classList.add('colcont-right');
+         sidebar2.classList.remove('rounded-r-3xl', 'rounded-l-lg');
+         sidebar2.classList.add('rounded-r-lg', 'rounded-l-3xl');
+      } else {
+         sidebar.classList.add('left-0');
+      }
+   });
+</script>
+
+      <!--
+     
+      MOBILE TOGGLE SECTION
+     
+      -->
+      <button id="mobile-sidebar-toggle" class="lg:hidden fixed top-4 left-4 z-50 w-fit p-2 rounded-xl text-white border border-white/5 bg-[#141414] hover:scale-110 active:scale-100 duration-200 transition-all">
+         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+         </svg>
+      </button>
+      <!-- Static sidebar for desktop -->
+      <div id="pc-sidebar" class="sidebar transition-all duration-300 ease-in-out hidden lg:fixed lg:inset-y-0 lg:z-50 p-2 lg:flex lg:w-56 lg:flex-col group group-[.collapsed]:w-[4%]">
+         <div id="pc-sidebar2" class="flex grow flex-col gap-y-5 overflow-hidden rounded-r-3xl rounded-l-lg bg-transparent border border-white/5">
+            <nav class="flex flex-1 flex-col">
+               <div class="pl-6 pt-4 pb-4 flex">
+                  <a href="/" class="flex">
+                     <% if (logo == true) { %>
+                     <img src="/assets/logo.png" class="h-7 w-7 rounded mr-3 inline-flex">
+                     <% } %>
+                     <h1 class="text-white font-medium tracking-tight text-lg group-[.collapsed]:hidden"><%= name %></h1>
+                  </a>
+               </div>
+                  <!--
+     
+      USER INFO SECTION
+     
+      -->
+                  <div class="flex items-center space-x-4 py-4 px-4 border-y border-white/5">
+                     <img class="h-8 w-8 rounded-xl object-cover" src="<%= user.avatar || 'https://api.dicebear.com/9.x/thumbs/svg?seed=' + user.username %>" alt="User avatar">
+                     <div class="group-[.collapsed]:hidden">
+                       <p class="text-sm font-medium text-white"><%= user.username %></p>
+                       <p class="text-xs text-neutral-500"><%= user.userId.substring(0, 6) %></p>
+                     </div>
+                  </div>
+               <ul role="list" class="flex flex-1 flex-col gap-y-7 mt-2">
+                  <li>
+                     <ul role="list" class="-mx-2 space-y-1">
+                        <div id="active-background" class="absolute left-0 w-full h-8 bg-white/5 rounded-2xl transition-all duration-300 ease-in-out"></div>
+                        <li>
+                           <a href="/instances" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal" searchdata="container instances servers" subterm="jegli:/server/servername">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0"><rect width="256" height="256" fill="none"/><path d="M220,169.09l-92,53.65L36,169.09A8,8,0,0,0,28,182.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,169.09Z"/><path d="M220,121.09l-92,53.65L36,121.09A8,8,0,0,0,28,134.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,121.09Z"/><path d="M28,86.91l96,56a8,8,0,0,0,8.06,0l96-56a8,8,0,0,0,0-13.82l-96-56a8,8,0,0,0-8.06,0l-96,56a8,8,0,0,0,0,13.82Z"/></svg>
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.instances %></span>
+                           </a>
+                           <% if (user.admin == true) { %>
+                           <a href="/remote-instances" searchdata="remote instances external panel pterodactyl" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0"><rect width="256" height="256" fill="none"/><path d="M220,169.09l-92,53.65L36,169.09A8,8,0,0,0,28,182.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,169.09Z"/><path d="M220,121.09l-92,53.65L36,121.09A8,8,0,0,0,28,134.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,121.09Z"/><path d="M232,192H216V176a8,8,0,0,0-16,0v16H184a8,8,0,0,0,0,16h16v16a8,8,0,0,0,16,0V208h16a8,8,0,0,0,0-16Zm-92,23.76-12,7L36,169.09A8,8,0,0,0,28,182.91l96,56a8,8,0,0,0,8.06,0l16-9.33A8,8,0,1,0,140,215.76ZM24,80a8,8,0,0,1,4-6.91l96-56a8,8,0,0,1,8.06,0l96,56a8,8,0,0,1,0,13.82l-96,56a8,8,0,0,1-8.06,0l-96-56A8,8,0,0,1,24,80Z"/></svg>
+                              <span class="group-[.collapsed]:hidden">Instances (Remote)</span>
+                           </a>
+                           <% } %>
+                           <a href="/account" searchdata="account profile <%= user.username %>" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0">
+                                 <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" />
+                               </svg>
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.account %></span>
+                           </a>
+                           <% plugins.forEach(plugin => { %>
+                              <% if (plugin.sidebar) { %>
+                                  <% Object.entries(plugin.sidebar).forEach(([key, value]) => { %>
+                                      <a href="<%= value.url %>" searchdata="<%= value.search_data %>" class="transition nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                                          <% if (value.icon) { %>
+                                              <span class="svg-icon" data-icon-url="<%= value.icon %>"></span>
+                                          <% } else { %>
+                                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 mt-0.5 h-5">
+                                                  <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z" />
+                                              </svg>
+                                          <% } %>
+                                          <span><%= key %></span>
+                                      </a>
+                                  <% }); %>
+                              <% } %>
+                          <% }); %>
+                          
+                          <script>
+                              document.addEventListener("DOMContentLoaded", function() {
+                                  document.querySelectorAll('.svg-icon').forEach(function(span) {
+                                      const url = span.getAttribute('data-icon-url');
+                          
+                                      fetch(url)
+                                          .then(response => {
+                                              if (!response.ok) {
+                                                  throw new Error('Network response was not ok');
+                                              } else if (response.status !== 200) {
+                                                  throw new Error(`Request failed with status ${response.status}`);
+                                              } else if (!response.text().includes('<svg')) {
+                                                 throw new Error('Response does not contain an SVG');
+                                              }
+                                              return response.text();
+                                          })
+                                          .then(svgContent => {
+                                              span.innerHTML = svgContent;
+                                          })
+                                          .catch(error => {
+                                              console.error('Error on Loading the SVG:', error);
+                                          });
+                                  });
+                              });
+                          </script>
+                          
+                          
+                          
+                        </li>
+                        <% if (user.admin == true) { %>
+                        <p class="pl-8 text-neutral-400 text-xs font-medium pt-6 pb-2 group-[.collapsed]:hidden"><span>Admin Panel</span></p>
+                        <li>
+                           <a href="/admin/overview" searchdata="admin overview control" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0"><rect width="256" height="256" fill="none"/><path d="M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z"/></svg>
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.overview %></span>
+                           </a>
+                        </li>
+                        <li>
+                           <a href="/admin/settings" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0"><rect width="256" height="256" fill="none"/><path d="M237.94,107.21a8,8,0,0,0-3.89-5.4l-29.83-17-.12-33.62a8,8,0,0,0-2.83-6.08,111.91,111.91,0,0,0-36.72-20.67,8,8,0,0,0-6.46.59L128,41.85,97.88,25a8,8,0,0,0-6.47-.6A111.92,111.92,0,0,0,54.73,45.15a8,8,0,0,0-2.83,6.07l-.15,33.65-29.83,17a8,8,0,0,0-3.89,5.4,106.47,106.47,0,0,0,0,41.56,8,8,0,0,0,3.89,5.4l29.83,17,.12,33.63a8,8,0,0,0,2.83,6.08,111.91,111.91,0,0,0,36.72,20.67,8,8,0,0,0,6.46-.59L128,214.15,158.12,231a7.91,7.91,0,0,0,3.9,1,8.09,8.09,0,0,0,2.57-.42,112.1,112.1,0,0,0,36.68-20.73,8,8,0,0,0,2.83-6.07l.15-33.65,29.83-17a8,8,0,0,0,3.89-5.4A106.47,106.47,0,0,0,237.94,107.21ZM128,168a40,40,0,1,1,40-40A40,40,0,0,1,128,168Z"/></svg>
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.settings %></span>
+                           </a>
+                        </li>
+                        <li>
+                           <a href="/admin/analytics" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0"><rect width="256" height="256" fill="none"/><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM200,176a8,8,0,0,1,0,16H56a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v62.92l34.88-29.07a8,8,0,0,1,9.56-.51l43,28.69,43.41-36.18a8,8,0,0,1,10.24,12.3l-48,40a8,8,0,0,1-9.56.51l-43-28.69L64,155.75V176Z"/></svg>
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.analytics %></span>
+                           </a>
+                        </li>
+                        <li>
+                           <a href="/admin/users" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0">
+                                 <path d="M7 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM14.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM1.615 16.428a1.224 1.224 0 0 1-.569-1.175 6.002 6.002 0 0 1 11.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 0 1 7 18a9.953 9.953 0 0 1-5.385-1.572ZM14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 0 0-1.588-3.755 4.502 4.502 0 0 1 5.874 2.636.818.818 0 0 1-.36.98A7.465 7.465 0 0 1 14.5 16Z" />
+                               </svg>                               
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.users %></span>
+                           </a>
+                        </li>
+                        <li>
+                           <a href="/admin/instances" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0"><rect width="256" height="256" fill="none"/><path d="M24,80a8,8,0,0,1,4-6.91l96-56a8,8,0,0,1,8.06,0l96,56a8,8,0,0,1,0,13.82l-96,56a8,8,0,0,1-8.06,0l-96-56A8,8,0,0,1,24,80Zm196,41.09-92,53.65L36,121.09A8,8,0,0,0,28,134.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,121.09ZM232,192H216V176a8,8,0,0,0-16,0v16H184a8,8,0,0,0,0,16h16v16a8,8,0,0,0,16,0V208h16a8,8,0,0,0,0-16Zm-92,23.76-12,7L36,169.09A8,8,0,0,0,28,182.91l96,56a8,8,0,0,0,8.06,0l16-9.33A8,8,0,1,0,140,215.76Z"/></svg>
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.instances %></span>
+                           </a>
+                        </li>
+                        <li>
+                           <a href="/admin/nodes" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0"><rect width="256" height="256" fill="none"/><path d="M208,40H48A16,16,0,0,0,32,56v48a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V56A16,16,0,0,0,208,40ZM180,92a12,12,0,1,1,12-12A12,12,0,0,1,180,92Z"/><path d="M208,136H48a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V152A16,16,0,0,0,208,136Zm-28,52a12,12,0,1,1,12-12A12,12,0,0,1,180,188Z"/></svg>
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.nodes %></span>
+                           </a>
+                        </li>
+                        <li>
+                           <a href="/admin/images" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0"><rect width="256" height="256" fill="none"/><path d="M243.31,136,144,36.69A15.86,15.86,0,0,0,132.69,32H40a8,8,0,0,0-8,8v92.69A15.86,15.86,0,0,0,36.69,144L136,243.31a16,16,0,0,0,22.63,0l84.68-84.68a16,16,0,0,0,0-22.63ZM84,96A12,12,0,1,1,96,84,12,12,0,0,1,84,96Z"/></svg>
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.images %></span>
+                           </a>
+                        </li>
+                        <li>
+                           <a href="/admin/apikeys" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0"><rect width="256" height="256" fill="none"/><path d="M216.57,39.43A80,80,0,0,0,83.91,120.78L28.69,176A15.86,15.86,0,0,0,24,187.31V216a16,16,0,0,0,16,16H72a8,8,0,0,0,8-8V208H96a8,8,0,0,0,8-8V184h16a8,8,0,0,0,5.66-2.34l9.56-9.57A79.73,79.73,0,0,0,160,176h.1A80,80,0,0,0,216.57,39.43ZM180,92a16,16,0,1,1,16-16A16,16,0,0,1,180,92Z"/></svg>
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.APIKeys %></span>
+                           </a>
+                        </li>
+                        <li>
+                           <a href="/admin/auditlogs" searchdata="audit logs admin" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0"><rect width="256" height="256" fill="none"/><path d="M220.8,169.6A8,8,0,0,0,216,168h-8V64a32,32,0,0,0-32-32H40A32,32,0,0,0,8,64C8,77.61,18.05,85.54,19.2,86.4h0A7.89,7.89,0,0,0,24,88a8,8,0,0,0,4.87-14.33h0C28.83,73.62,24,69.74,24,64a16,16,0,0,1,32,0V192a32,32,0,0,0,32,32H200a32,32,0,0,0,32-32C232,178.39,222,170.46,220.8,169.6ZM104,96h64a8,8,0,0,1,0,16H104a8,8,0,0,1,0-16Zm-8,40a8,8,0,0,1,8-8h64a8,8,0,0,1,0,16H104A8,8,0,0,1,96,136Zm104,72H107.71A31.82,31.82,0,0,0,112,192a26.92,26.92,0,0,0-1.21-8h102a12.58,12.58,0,0,1,3.23,8A16,16,0,0,1,200,208Z"/></svg>
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.auditLogs %></span>
+                           </a>
+                        </li>
+
+                        <li>
+                           <a href="/admin/plugins" searchdata="addons plugins admin" class="transition-all duration-300 ease-in-out nav-link mt-1 text-neutral-400 px-4 mx-4 group flex gap-x-3 py-1.5 rounded-xl text-sm leading-6 font-normal">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0"><rect width="256" height="256" fill="none"/><path d="M165.78,224H208a16,16,0,0,0,16-16V170.35A8,8,0,0,0,212.94,163a23.37,23.37,0,0,1-8.94,1.77c-13.23,0-24-11.1-24-24.73s10.77-24.73,24-24.73a23.37,23.37,0,0,1,8.94,1.77A8,8,0,0,0,224,109.65V72a16,16,0,0,0-16-16H171.78a35.36,35.36,0,0,0,.22-4,36,36,0,0,0-72,0,35.36,35.36,0,0,0,.22,4H64A16,16,0,0,0,48,72v32.22a35.36,35.36,0,0,0-4-.22,36,36,0,0,0,0,72,35.36,35.36,0,0,0,4-.22V208a16,16,0,0,0,16,16h42.22"/></svg>
+                              <span class="group-[.collapsed]:hidden"><%= req.translations.plugins %></span>
+                           </a>
+                        </li>
+                        <% } %>
+                     </ul>
+                  </li>
+                  <li class="mt-auto border-t border-white/5">
+                     <a href="/auth/logout" class="group -mx-2 flex gap-x-3 rounded-xl pl-6 py-4 text-sm font-medium leading-6 text-neutral-500 transition-all duration-300 ease-in-out hover:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 mt-0.5 h-5 group-[.collapsed]:mr-0">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+                        </svg>
+                        <span class="group-[.collapsed]:hidden"><%= req.translations.signOut %></span>
+                     </a>
+                  </li>
+               </ul>
+            </nav>
+         </div>
+      </div>
+      <div id="colcont" class="lg:pl-56 group-[.collapsed]:pl-[4.2rem] group-[.sidebar-right]:pl-[1.2rem] group-[.sidebar-right]:pr-[14.2rem]">
+      <div class="sticky backdrop-blur top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 bg-transparent px-4 sm:gap-x-6 sm:px-4 lg:px-4">
+         <div class="hidden lg:block">
+         <button type="button" id="sidebar-toggle" class="hidden lg:block w-fit p-2 mt-1 rounded-xl text-white border border-white/5 hover:scale-110 active:scale-100 duration-200">
+            <span class="sr-only">Open sidebar</span>
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+         </button>
+      </div>
+         <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div class="relative flex flex-1 flex-col">
+               <div class="ml-14 lg:-ml-2 flex items-center w-fit mt-3.5 px-4 py-2 h-10  rounded-xl border border-white/5  active:scale-100 duration-200 bg-transparent text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 text-neutral-400">
+                     <path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clip-rule="evenodd" />
+                  </svg>
+                  <input id="searchInput" 
+                     class="bg-transparent border-transparent focus-visible:ring-transparent border-none ring-transparent sm:text-sm placeholder:text-zinc-500" 
+                     placeholder="<%= req.translations.search %>" 
+                     type="search" 
+                     name="search"
+                     autocomplete="off"
+                     onclick="input.blur()"
+                     onfocus="showSearchResults()">
+               </div>
+               <div id="searchResults" class="absolute bg-white w-[12.5rem] rounded-xl shadow-lg hidden mt-20 px-2 pb-2">
+               </div>
+            </div>
+            <script src="/javascript/search/index.js"></script>
+<div class="flex items-center gap-x-4 lg:gap-x-6">
+   <!--
+     
+   DROPDOWN PROFILE
+     
+   -->
+   <div class="relative mt-3 mr-4">
+     <button type="button" class="-m-1.5 flex items-center p-1.5" id="user-menu-button" aria-expanded="false" aria-haspopup="true" onclick="toggleDropdown()">
+       <img class="h-8 w-8 rounded-lg bg-transparent" src="<%= user.avatar || 'https://api.dicebear.com/9.x/thumbs/svg?seed=' + user.username %>" alt="" style="object-fit:cover;">
+       <span class="hidden lg:flex lg:items-center ml-2.5 text-sm font-medium leading-6 text-white" aria-hidden="true">
+         <%= user.username %>
+         <span class="font-mono text-xs text-zinc-300 font-normal ml-1">(<%= user.userId.substring(0, 6) %>)</span>
+       </span>
+     </button>
+     
+     <!--
+     
+     DROPDOWN MENU LANGUAGES SELECTOR
+     
+     -->
+     <div id="dropdown-menu" class="hidden absolute right-0 z-10 mt-2 w-64 bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none pb-2 transform opacity-0 scale-95 transition-all duration-200 ease-out">
+       <!-- User info header -->
+       <div class="px-4 pt-4 pb-2 border-b border-gray-100">
+         <div class="flex items-center gap-3">
+           <img id="dropdown-avatar" src="<%= user.avatar || 'https://api.dicebear.com/9.x/thumbs/svg?seed=' + user.username %>" class="h-10 w-10 rounded-xl object-cover" alt="avatar">
+           <div>
+             <p class="text-sm font-semibold text-gray-800"><%= user.username %></p>
+             <p class="text-xs text-gray-500"><%= user.email %></p>
+           </div>
+         </div>
+       </div>
+       <!-- Account link -->
+       <div class="px-3 pt-2">
+         <a href="/account" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition">
+           <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+           <%= req.translations.account %>
+         </a>
+       </div>
+       <!-- Language selector -->
+       <div class="p-3">
+         <div class="py-1 px-1">
+           <label for="language-selector" class="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">Language</label>
+           <div class="relative">
+             <select id="language-selector" class="appearance-none w-full bg-white border border-gray-300 rounded-md py-2 pl-2 pr-10 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500" onchange="changeLanguage(this.value)">
+               <% languages.forEach(function(language) { %>
+                  <option value="<%= language %>"
+                    <%= (req.cookies.lang ? req.cookies.lang : (settings && settings.defaultLanguage ? settings.defaultLanguage : 'en')) === language ? 'selected' : '' %>>
+                    <%= req.translations[language] || language %>
+                  </option>
+               <% }); %>
+             </select>
+           </div>
+         </div>
+       </div>
+       <!-- Sign out -->
+       <div class="px-3 pb-1">
+         <a href="/auth/logout" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 transition">
+           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+           <%= req.translations.signOut %>
+         </a>
+       </div>
+     </div>
+   </div>
+ </div>
+ 
+ <style>
+   .flag-icon {
+     width: 20px;
+     height: 15px;
+     background-size: cover;
+     background-position: center;
+   }
+   .flag-icon-de { background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1IDMiPjxwYXRoIGQ9Ik0wIDBoNXYxSDB6IiBmaWxsPSIjMDAwIi8+PHBhdGggZD0iTTAgMWg1djFIMHoiIGZpbGw9IiNEMDAiLz48cGF0aCBkPSJNMCAyaDV2MUgweiIgZmlsbD0iI0ZGQ0UwMCIvPjwvc3ZnPg=='); }
+   .flag-icon-en { background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjM1IDY1MCI+PHBhdGggZmlsbD0iIzAxMjE2OSIgZD0iTTAgMGgxMjM1djY1MEgweiIvPjxwYXRoIGZpbGw9IiNGRkYiIGQ9Ik0wIDc1aDEyMzV2MjVIMHptMCAxMjVoMTIzNXYyNUgwem0wIDEyNWgxMjM1djI1SDB6bTAgMTI1aDEyMzV2MjVIMHptMCAxMjVoMTIzNXYyNUgweiIvPjxwYXRoIGZpbGw9IiNDODEwMkUiIGQ9Ik0wIDEwMGgxMjM1djI1SDB6bTAgMTI1aDEyMzV2MjVIMHptMCAxMjVoMTIzNXYyNUgwem0wIDEyNWgxMjM1djI1SDB6bTAgMTI1aDEyMzV2MjVIMHoiLz48cGF0aCBmaWxsPSIjRkZGIiBkPSJNMCAwaDQ5NHYzNTBIMHoiLz48ZyBmaWxsPSIjQzgxMDJFIj48cGF0aCBkPSJNMjIwIDAgMCA2MHYzNWwyMjAgNzVMMCA1OXY0NGwyMjAgOTR6Ii8+PHBhdGggZD0iTTI3NCAwdjE4MEgwdjQ0aDI3NHYxMjZoNDRWMjI0aDQ5NHYtNDRINTE4VjBoLTQ0djEyNkgwdjQ0aDQ3NFYweiIvPjwvZz48L3N2Zz4='); }
+   .flag-icon-nl { background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5IDYiPjxwYXRoIGZpbGw9IiMyMTQ2OEIiIGQ9Ik0wIDBoOXYySDB6Ii8+PHBhdGggZmlsbD0iI0ZGRiIgZD0iTTAgMmg5djJIMHoiLz48cGF0aCBmaWxsPSIjQUUxQzI4IiBkPSJNMCA0aDl2MkgweiIvPjwvc3ZnPg=='); }
+ </style>
+ 
+ <script>
+   function toggleDropdown() {
+     const dropdownMenu = document.getElementById('dropdown-menu');
+     dropdownMenu.classList.toggle('hidden');
+     if (!dropdownMenu.classList.contains('hidden')) {
+       setTimeout(() => {
+         dropdownMenu.style.transform = 'scale(1)';
+         dropdownMenu.style.opacity = '1';
+       }, 10);
+     } else {
+       dropdownMenu.style.transform = 'scale(0.95)';
+       dropdownMenu.style.opacity = '0';
+     }
+   }
+
+   window.addEventListener('click', function(e) {
+     const userMenuButton = document.getElementById('user-menu-button');
+     const dropdownMenu = document.getElementById('dropdown-menu');
+     if (!userMenuButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
+       dropdownMenu.classList.add('hidden');
+       dropdownMenu.style.transform = 'scale(0.95)';
+       dropdownMenu.style.opacity = '0';
+     }
+   });
+ </script>
+           <script src="/javascript/language/index.js"></script>
+         </div>
+      </div>
+      <script>
+         document.addEventListener('DOMContentLoaded', function() {
+           const navLinks = document.querySelectorAll('.nav-link');
+           const activeBackground = document.getElementById('active-background');
+           const contentSection = document.getElementById('content');
+           let isAnimating = false;
+           let currentActiveLink = null;
+         
+           function getCookie(name) {
+             const value = `; ${document.cookie}`;
+             const parts = value.split(`; ${name}=`);
+             if (parts.length === 2) return parts.pop().split(';').shift();
+           }
+         
+           function setCookie(name, value, days) {
+             let expires = '';
+             if (days) {
+               const date = new Date();
+               date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+               expires = `; expires=${date.toUTCString()}`;
+             }
+             document.cookie = `${name}=${value || ''}${expires}; path=/`;
+           }
+         
+           function updateActiveBackground(link, instant = false) {
+             if (!link) return;
+             
+             const linkRect = link.getBoundingClientRect();
+             const navRect = link.closest('ul').getBoundingClientRect();
+             const topOffset = linkRect.top - navRect.top + link.closest('ul').scrollTop;
+         
+             if (instant) {
+               activeBackground.style.transition = 'none';
+             }
+             
+             activeBackground.style.height = `${linkRect.height}px`;
+             activeBackground.style.transform = `translateY(${topOffset}px)`;
+         
+             if (instant) {
+               // Force a reflow
+               void activeBackground.offsetWidth;
+               activeBackground.style.transition = 'transform 0.3s ease, height 0.3s ease';
+             }
+         
+             setCookie('lastActiveLink', link.id, 7);
+             currentActiveLink = link;
+           }
+         
+           function updateActiveLink(currentPath) {
+             let foundActive = false;
+             navLinks.forEach((link) => {
+               let currentpathx2 = currentPath.replace('instance/', 'instances');
+               if (currentpathx2.startsWith(link.getAttribute('href'))) {
+                 link.classList.add('active');
+                 updateActiveBackground(link, true);
+                 foundActive = true;
+               } else {
+                 link.classList.remove('active');
+               }
+             });
+         
+             if (!foundActive) {
+               activeBackground.style.transform = 'translateY(0)';
+               activeBackground.style.height = '0px';
+             }
+           }
+         
+           // Appliquer immédiatement au chargement de la page
+           updateActiveLink(window.location.pathname);
+         
+           function animatePageTransition(href) {
+             if (isAnimating) return;
+             isAnimating = true;
+             // Save music state before navigation
+             var musicEl = document.getElementById('bg-music');
+             if (musicEl) {
+               try { sessionStorage.setItem('skyport_music_playing', musicEl.paused ? 'stopped' : 'playing'); } catch(e) {}
+               try { sessionStorage.setItem('skyport_music_time', musicEl.currentTime); } catch(e) {}
+             }
+             if (contentSection) {
+               contentSection.style.transition = 'opacity 0.12s ease, transform 0.12s ease';
+               contentSection.style.opacity = '0';
+               contentSection.style.transform = 'translateY(4px)';
+             }
+             setTimeout(function() {
+               window.location.href = href;
+             }, 100);
+           }
+         
+           navLinks.forEach(link => {
+             link.addEventListener('click', (e) => {
+               e.preventDefault();
+               const href = link.getAttribute('href');
+               updateActiveLink(href);
+               animatePageTransition(href);
+             });
+           });
+         
+           window.addEventListener('popstate', () => {
+             updateActiveLink(window.location.pathname);
+           });
+         });
+
+
+         document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('pc-sidebar');
+            const toggleButton = document.getElementById('sidebar-toggle');
+            const colcont = document.getElementById('colcont');
+
+            function setCookie(name, value, days) {
+               const date = new Date();
+               date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+               const expires = "expires=" + date.toUTCString();
+               document.cookie = name + "=" + value + ";" + expires + ";path=/";
+            }
+            function getCookie(name) {
+               const nameEQ = name + "=";
+               const ca = document.cookie.split(';');
+               for(let i = 0; i < ca.length; i++) {
+                  let c = ca[i];
+                  while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                  if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+               }
+               return null;
+            }
+
+            function hideSidebar() {
+               sidebar.style.display = 'none';
+               colcont.style.paddingLeft = '1rem';
+               colcont.style.paddingRight = '1rem';
+               setCookie('sidebar-hidden', 'true', 7);
+            }
+            function showSidebar() {
+               sidebar.style.display = '';
+               colcont.style.paddingLeft = '';
+               colcont.style.paddingRight = '';
+               setCookie('sidebar-hidden', 'false', 7);
+            }
+
+            const sidebarHidden = getCookie('sidebar-hidden');
+            if (sidebarHidden === 'true') {
+               hideSidebar();
+            }
+
+            toggleButton.addEventListener('click', () => {
+               if (sidebar.style.display === 'none') {
+                  showSidebar();
+               } else {
+                  hideSidebar();
+               }
+            });
+
+            const mobileToggleButton = document.getElementById('mobile-sidebar-toggle');
+            if (mobileToggleButton) {
+               mobileToggleButton.addEventListener('click', () => {
+                  sidebar.classList.toggle('open');
+                  if (sidebar.classList.contains('open')) {
+                     mobileToggleButton.classList.add('right-4');
+                     mobileToggleButton.classList.remove('left-4');
+                  } else {
+                     mobileToggleButton.classList.add('left-4');
+                     mobileToggleButton.classList.remove('right-4');
+                  }
+               });
+            }
+         });
+         </script>         
+         
+
+      <style>
+         .loading-spin {
+           svg {
+             fill: #868686;
+             
+             path:nth-of-type(1) {
+               animation: pulse 1s infinite linear;
+             }
+             path:nth-of-type(2) {
+               animation: pulse 1s -.083s infinite linear;
+             }
+             path:nth-of-type(3) {
+               animation: pulse 1s -.166s infinite linear;
+             }
+             path:nth-of-type(4) {
+               animation: pulse 1s -.249s infinite linear;
+             }
+             path:nth-of-type(5) {
+               animation: pulse 1s -.332s infinite linear;
+             }
+             path:nth-of-type(6) {
+               animation: pulse 1s -.415s infinite linear;
+             }
+             path:nth-of-type(7) {
+               animation: pulse 1s -.498s infinite linear;
+             }
+             path:nth-of-type(8) {
+               animation: pulse 1s -.581s infinite linear;
+             }  
+             path:nth-of-type(9) {
+               animation: pulse 1s -.664s infinite linear;
+             }
+             path:nth-of-type(10) {
+               animation: pulse 1s -.747s infinite linear;
+             }
+             path:nth-of-type(11) {
+               animation: pulse 1s -.83s infinite linear;
+             }
+             path:nth-of-type(12) {
+               animation: pulse 1s -.913s infinite linear;
+             }
+           }
+         }
+         
+         @keyframes pulse {
+           50% { fill: #868686; }
+           to { fill: rgba(134,134,134,.4); }
+         }
+      </style>
+      <div id="loader" class="loading-spin transition-opacity duration-500 ease-in-out fixed ml-56 mt-16 inset-0 flex items-center justify-center <%= theme['paneltheme-color'] %> transition-opacity duration-300 opacity-100 z-50">
+         <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 27 27" fill="currentColor">
+            <path d="M18.696,10.5c-0.275-0.479-0.113-1.09,0.365-1.367l4.759-2.751c0.482-0.273,1.095-0.11,1.37,0.368 c0.276,0.479,0.115,1.092-0.364,1.364l-4.764,2.751C19.583,11.141,18.973,10.977,18.696,10.5z"/>
+            <path d="M16.133,6.938l2.75-4.765c0.276-0.478,0.889-0.643,1.367-0.366c0.479,0.276,0.641,0.886,0.365,1.366l-2.748,4.762 C17.591,8.415,16.979,8.58,16.5,8.303C16.021,8.027,15.856,7.414,16.133,6.938z"/>
+            <path d="M13.499,7.5c-0.552,0-1-0.448-1-1.001V1c0-0.554,0.448-1,1-1c0.554,0,1.003,0.447,1.003,1v5.499 C14.5,7.053,14.053,7.5,13.499,7.5z"/>
+            <path d="M8.303,10.5c-0.277,0.477-0.888,0.641-1.365,0.365L2.175,8.114C1.697,7.842,1.532,7.229,1.808,6.75 c0.277-0.479,0.89-0.642,1.367-0.368l4.762,2.751C8.416,9.41,8.58,10.021,8.303,10.5z"/>
+            <path d="M9.133,7.937l-2.75-4.763c-0.276-0.48-0.111-1.09,0.365-1.366c0.479-0.277,1.09-0.114,1.367,0.366l2.75,4.765 c0.274,0.476,0.112,1.088-0.367,1.364C10.021,8.581,9.409,8.415,9.133,7.937z"/>
+            <path d="M6.499,14.5H1c-0.554,0-1-0.448-1-1c0-0.554,0.447-1.001,1-1.001h5.499c0.552,0,1.001,0.448,1.001,1.001 C7.5,14.052,7.052,14.5,6.499,14.5z"/>
+            <path d="M8.303,16.502c0.277,0.478,0.113,1.088-0.365,1.366l-4.762,2.749c-0.478,0.273-1.091,0.112-1.368-0.366 c-0.276-0.479-0.111-1.089,0.367-1.368l4.762-2.748C7.415,15.856,8.026,16.021,8.303,16.502z"/>
+            <path d="M10.866,20.062l-2.75,4.767c-0.277,0.475-0.89,0.639-1.367,0.362c-0.477-0.277-0.642-0.886-0.365-1.365l2.75-4.764 c0.277-0.477,0.888-0.638,1.366-0.365C10.978,18.974,11.141,19.585,10.866,20.062z"/>
+            <path d="M13.499,19.502c0.554,0,1.003,0.448,1.003,1.002v5.498c0,0.55-0.448,0.999-1.003,0.999c-0.552,0-1-0.447-1-0.999v-5.498 C12.499,19.95,12.946,19.502,13.499,19.502z"/>
+            <path d="M17.867,19.062l2.748,4.764c0.275,0.479,0.113,1.088-0.365,1.365c-0.479,0.276-1.091,0.112-1.367-0.362l-2.75-4.767 c-0.276-0.477-0.111-1.088,0.367-1.365C16.979,18.424,17.591,18.585,17.867,19.062z"/>
+            <path d="M18.696,16.502c0.276-0.48,0.887-0.646,1.365-0.367l4.765,2.748c0.479,0.279,0.64,0.889,0.364,1.368 c-0.275,0.479-0.888,0.64-1.37,0.366l-4.759-2.749C18.583,17.59,18.421,16.979,18.696,16.502z"/>
+            <path d="M25.998,12.499h-5.501c-0.552,0-1.001,0.448-1.001,1.001c0,0.552,0.447,1,1.001,1h5.501c0.554,0,1.002-0.448,1.002-1 C27,12.946,26.552,12.499,25.998,12.499z"/>
+          </svg>
+      </div>
+
+  <!-- Background Music Player -->
+  <% if (typeof settings !== 'undefined' && settings && settings.backgroundMusic && settings.backgroundMusic.enabled && settings.backgroundMusic.url) { %>
+  <audio id="bg-music" loop style="display:none" preload="auto">
+    <source src="<%= settings.backgroundMusic.url %>" type="audio/mpeg">
+  </audio>
+  <button onclick="toggleMusic()" id="music-toggle-btn" title="Toggle Music" style="position:fixed;bottom:20px;right:20px;z-index:9999;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(10px);transition:all 0.2s;">
+    <svg id="music-icon-on" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 256 256">
+      <path d="M210.3,56.34l-80-24A8,8,0,0,0,120,40V148.26A48,48,0,1,0,136,184V50.75l69.7,20.91A8,8,0,0,0,210.3,56.34ZM88,216a32,32,0,1,1,32-32A32,32,0,0,1,88,216Z"/>
+    </svg>
+    <svg id="music-icon-off" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white hidden" fill="currentColor" viewBox="0 0 256 256">
+      <path d="M53.92,34.62A8,8,0,1,0,42.08,45.38L72,78.25V148.26A48,48,0,1,0,88,184a47.74,47.74,0,0,0-16-35.66V95.13l130.08,141.25A8,8,0,0,0,208,240a8,8,0,0,0,5.92-13.38ZM88,216a32,32,0,1,1,32-32A32,32,0,0,1,88,216Zm44-129.38V40a8,8,0,0,1,10.3-7.66l80,24a8,8,0,0,1-4.6,15.32L104,50.75Z"/>
+    </svg>
+  </button>
+  <script>
+    var bgMusic = document.getElementById('bg-music');
+    var iconOn  = document.getElementById('music-icon-on');
+    var iconOff = document.getElementById('music-icon-off');
+    var musicPlaying = false;
+    var MUSIC_KEY = 'skyport_music_playing';
+    var MUSIC_TIME_KEY = 'skyport_music_time';
+
+    // BroadcastChannel to sync music state between tabs
+    var bc = null;
+    try { bc = new BroadcastChannel('skyport_music'); } catch(e) {}
+
+    function setPlayingUI(playing) {
+      musicPlaying = playing;
+      if (playing) { iconOn.classList.remove('hidden'); iconOff.classList.add('hidden'); }
+      else          { iconOn.classList.add('hidden');    iconOff.classList.remove('hidden'); }
+    }
+
+    function tryPlay() {
+      // Restore playback position for continuity
+      var savedTime = parseFloat(sessionStorage.getItem(MUSIC_TIME_KEY) || '0');
+      if (savedTime > 0 && isFinite(savedTime)) {
+        bgMusic.currentTime = savedTime;
+      }
+      bgMusic.play().then(function() { setPlayingUI(true); }).catch(function() {});
+    }
+
+    // Save playback time periodically
+    setInterval(function() {
+      if (musicPlaying && bgMusic) {
+        sessionStorage.setItem(MUSIC_TIME_KEY, bgMusic.currentTime);
+      }
+    }, 1000);
+
+    // Check persisted state
+    var persistedState = sessionStorage.getItem(MUSIC_KEY);
+
+    if (persistedState === 'playing') {
+      // Was playing before navigation — resume
+      document.addEventListener('DOMContentLoaded', function() {
+        tryPlay();
+      });
+    }
+
+    // Fallback: on first user interaction
+    function initOnInteract() {
+      if (!musicPlaying && persistedState !== 'stopped') tryPlay();
+      document.removeEventListener('click', initOnInteract);
+      document.removeEventListener('keydown', initOnInteract);
+    }
+    if (persistedState !== 'stopped') {
+      document.addEventListener('click', initOnInteract, { once: true });
+      document.addEventListener('keydown', initOnInteract, { once: true });
+    }
+
+    // Before page unload — save state and time
+    window.addEventListener('beforeunload', function() {
+      sessionStorage.setItem(MUSIC_KEY, musicPlaying ? 'playing' : 'stopped');
+      if (bgMusic) sessionStorage.setItem(MUSIC_TIME_KEY, bgMusic.currentTime);
+    });
+
+    function toggleMusic() {
+      if (musicPlaying) {
+        bgMusic.pause();
+        setPlayingUI(false);
+        sessionStorage.setItem(MUSIC_KEY, 'stopped');
+        if (bc) bc.postMessage({type:'pause'});
+      } else {
+        tryPlay();
+        sessionStorage.setItem(MUSIC_KEY, 'playing');
+        if (bc) bc.postMessage({type:'play'});
+      }
+    }
+
+    // Listen for cross-tab music sync
+    if (bc) {
+      bc.onmessage = function(e) {
+        if (e.data.type === 'pause' && musicPlaying) { bgMusic.pause(); setPlayingUI(false); }
+        if (e.data.type === 'play' && !musicPlaying) { tryPlay(); }
+      };
+    }
+  </script>
+  <% } %>
+
+<!-- ===== POPUP NOTIFICATION SYSTEM ===== -->
+<div id="popup-container" style="position:fixed;top:1.25rem;right:1.25rem;z-index:99999;display:flex;flex-direction:column;gap:0.75rem;pointer-events:none;"></div>
+<style>
+  @keyframes popup-spin-enter {
+    0%   { transform: rotate(0deg) scale(0.5); opacity: 0; }
+    70%  { transform: rotate(360deg) scale(1.05); opacity: 1; }
+    100% { transform: rotate(360deg) scale(1); opacity: 1; }
+  }
+  @keyframes popup-fade-out {
+    0%   { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(2rem); }
+  }
+  .popup-toast {
+    pointer-events: all;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 0.875rem;
+    background: rgba(20,20,20,0.92);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px);
+    max-width: 320px;
+    min-width: 220px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    animation: popup-spin-enter 0.55s cubic-bezier(0.22,1,0.36,1) forwards;
+    position: relative;
+    overflow: hidden;
+  }
+  .popup-toast.removing { animation: popup-fade-out 0.3s ease forwards; }
+  .popup-icon-wrap { flex-shrink:0; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .popup-body { flex:1; min-width:0; }
+  .popup-title { font-size:0.8125rem; font-weight:600; color:#fff; margin:0 0 2px; }
+  .popup-msg   { font-size:0.75rem; color:rgba(255,255,255,0.55); margin:0; word-break:break-word; }
+  .popup-close { flex-shrink:0; background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; padding:0; line-height:1; font-size:1rem; transition:color 0.15s; }
+  .popup-close:hover { color:rgba(255,255,255,0.8); }
+  .popup-progress { position:absolute; bottom:0; left:0; height:3px; border-radius:0 0 0.875rem 0.875rem; transition:width linear; }
+</style>
+<script>
+  function removePopup(el) {
+    clearTimeout(el._timer);
+    el.classList.add('removing');
+    setTimeout(function() { if (el.parentNode) el.remove(); }, 350);
+  }
+  window.showPopup = function(type, title, message, duration) {
+    duration = duration || 4500;
+    const container = document.getElementById('popup-container');
+    const colors = {
+      success: { bg:'rgba(34,197,94,0.15)',  border:'rgba(34,197,94,0.3)',  icon:'#22c55e', bar:'#22c55e' },
+      error:   { bg:'rgba(239,68,68,0.15)',   border:'rgba(239,68,68,0.3)',  icon:'#ef4444', bar:'#ef4444' },
+      info:    { bg:'rgba(99,102,241,0.15)',  border:'rgba(99,102,241,0.3)', icon:'#818cf8', bar:'#818cf8' },
+      warning: { bg:'rgba(234,179,8,0.15)',   border:'rgba(234,179,8,0.3)',  icon:'#facc15', bar:'#facc15' },
+    };
+    const c = colors[type] || colors.info;
+    const icons = {
+      success: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></svg>',
+      error:   '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M236.8,188.09,149.35,36.22a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM120,104a8,8,0,0,1,16,0v40a8,8,0,0,1-16,0Zm8,88a12,12,0,1,1,12-12A12,12,0,0,1,128,192Z"/></svg>',
+      info:    '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"/></svg>',
+      warning: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-80V104a8,8,0,0,1,16,0v32a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,172Z"/></svg>',
+    };
+    const toast = document.createElement('div');
+    toast.className = 'popup-toast';
+    toast.style.borderColor = c.border;
+    toast.innerHTML = '<div class="popup-icon-wrap" style="background:' + c.bg + ';color:' + c.icon + ';">' + (icons[type] || icons.info) + '</div><div class="popup-body"><p class="popup-title">' + title + '</p>' + (message ? '<p class="popup-msg">' + message + '</p>' : '') + '</div><button class="popup-close" onclick="removePopup(this.closest(\'.popup-toast\'))">&#x2715;</button><div class="popup-progress" style="background:' + c.bar + ';width:100%;transition-duration:' + duration + 'ms;"></div>';
+    container.appendChild(toast);
+    requestAnimationFrame(function() { requestAnimationFrame(function() { toast.querySelector('.popup-progress').style.width = '0%'; }); });
+    toast._timer = setTimeout(function() { removePopup(toast); }, duration);
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('saved') === '1') window.showPopup('success', 'Saved', 'Settings saved successfully.');
+    if (params.get('added') === '1') window.showPopup('success', 'Added', 'Remote panel added.');
+    if (params.get('deleted') === '1') window.showPopup('info', 'Removed', 'Entry removed.');
+    if (params.get('err')) window.showPopup('error', 'Error', decodeURIComponent(params.get('err')));
+    if (params.get('success')) window.showPopup('success', 'Success', decodeURIComponent(params.get('success')));
+  });
+</script>
+
+<!-- ===== SEASONAL PARTICLE EFFECTS ===== -->
+<canvas id="particles-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;display:none;"></canvas>
+<script>
+(function() {
+  var particlesSettings = null;
+  try { particlesSettings = <%- JSON.stringify((typeof settings !== 'undefined' && settings && settings.particles) ? settings.particles : null) %>; } catch(e) {}
+  if (!particlesSettings || !particlesSettings.enabled) return;
+
+  var canvas = document.getElementById('particles-canvas');
+  canvas.style.display = 'block';
+  var ctx = canvas.getContext('2d');
+  var COUNT = Math.min(500, Math.max(10, particlesSettings.count || 80));
+  var SIZE  = Math.min(20, Math.max(2, particlesSettings.size || 5));
+  var SEASONAL = particlesSettings.seasonal || false;
+
+  function getSeasonColors() {
+    if (!SEASONAL) return ['rgba(255,255,255,0.7)', 'rgba(255,255,255,0.4)'];
+    var m = new Date().getMonth();
+    if (m === 11 || m <= 1)  return ['rgba(200,230,255,0.85)', 'rgba(180,220,255,0.5)'];
+    if (m >= 2 && m <= 4)   return ['rgba(255,190,210,0.8)',  'rgba(255,140,180,0.5)'];
+    if (m >= 5 && m <= 7)   return ['rgba(255,230,80,0.7)',   'rgba(160,255,100,0.45)'];
+    return                         ['rgba(255,150,50,0.75)',  'rgba(200,80,20,0.5)'];
+  }
+
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  var colors = getSeasonColors();
+  var particles = [];
+  for (var i = 0; i < COUNT; i++) {
+    particles.push({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight - window.innerHeight,
+      r: Math.random() * SIZE + SIZE * 0.4,
+      speed: Math.random() * 1.5 + 0.5,
+      drift: (Math.random() - 0.5) * 0.6,
+      opacity: Math.random() * 0.6 + 0.3,
+      color: Math.random() > 0.5 ? colors[0] : colors[1],
+      angle: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.03,
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (var j = 0; j < particles.length; j++) {
+      var p = particles[j];
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.globalAlpha = p.opacity;
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      for (var k = 0; k < 6; k++) {
+        var a = (Math.PI / 3) * k;
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * p.r, Math.sin(a) * p.r);
+      }
+      ctx.stroke();
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(0, 0, p.r * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      p.y += p.speed;
+      p.x += p.drift;
+      p.angle += p.spin;
+      if (p.y > canvas.height + p.r * 2) {
+        p.y = -p.r * 2;
+        p.x = Math.random() * canvas.width;
+      }
+      if (p.x < -p.r * 2) p.x = canvas.width + p.r;
+      if (p.x > canvas.width + p.r * 2) p.x = -p.r;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>

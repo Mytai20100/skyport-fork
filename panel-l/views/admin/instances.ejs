@@ -1,0 +1,517 @@
+<%- include('../components/template') %>
+<% /* SSB0aGluayBJJ3ZlIGZvdW5kIG15IHZvaWNlCkknbSBhIGxlZWNoIHN1Y2tpbmcgYmxvb2QgYmFncwpUYXN0ZSBkZWZlYXQsIGl0J3MgYSBzYW5kYmFnClNhbGluZSBTb2x1dGlvbg== */ %>
+<main id="content">
+  <div class="bg-transparent">
+    <div class="sm:flex sm:items-center px-8 pt-4">
+      <div class="sm:flex-auto">
+        <h1 class="text-base font-medium leading-6 text-white"><%= req.translations.instances %></h1>
+        <p class="mt-1 tracking-tight text-sm text-neutral-500"><%= req.translations.viewInstances %></p>
+      </div>
+      <% if (req.user.admin === true) { %>
+        <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+          <label for="instance-toggle" class="flex items-center cursor-pointer">
+            <span class="mr-3 text-sm font-medium text-white">Your Instances</span>
+            <div class="relative">
+              <input type="checkbox" id="instance-toggle" class="sr-only" <%= req.query.see === 'other' ? 'checked' : '' %>>
+              <div class="w-9 px-1 h-5 bg-white/10 rounded-full shadow-inner"></div>
+              <div class="dot absolute w-4 mt-1.5 ml-1.5 mr-1.5 h-4 bg-white rounded-full shadow -left-1 -top-1 transition"></div>
+            </div>
+            <span class="ml-3 text-sm font-medium text-white">All Instances</span>
+          </label>
+        </div>
+      <% } %>
+    </div>
+  </div>
+  <% if (req.query.err == "NOTACTIVEYET") { %>
+    <div class="rounded-xl bg-amber-800/10 px-4 py-6 m-7">
+      <div class="flex">
+          <div class="flex-shrink-0 ml-1.5">
+              <svg class="animate-spin mt-2 h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg"
+                  fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                  </circle>
+                  <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                  </path>
+              </svg>
+          </div>
+          <div class="ml-5">
+              <h3 class="text-sm font-medium text-amber-400">Awaiting Installation</h3>
+              <div class="text-sm text-amber-400/50">
+                  <p>The instance either isn't installed yet, or is in a failed state.</p>
+              </div>
+          </div>
+      </div>
+  </div>
+    <% } %>	  
+  <div class="px-4 sm:px-6 lg:px-8 mt-8">
+    <% if (instances.length == 0) { %>
+      <!-- No instances -->
+      <div id="noInstancesContainer" class="text-center mt-64">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+          class="mx-auto h-12 w-12 text-neutral-500">
+          <path fill-rule="evenodd"
+            d="M11.622 1.602a.75.75 0 0 1 .756 0l2.25 1.313a.75.75 0 0 1-.756 1.295L12 3.118 10.128 4.21a.75.75 0 1 1-.756-1.295l2.25-1.313ZM5.898 5.81a.75.75 0 0 1-.27 1.025l-1.14.665 1.14.665a.75.75 0 1 1-.756 1.295L3.75 8.806v.944a.75.75 0 0 1-1.5 0V7.5a.75.75 0 0 1 .372-.648l2.25-1.312a.75.75 0 0 1 1.026.27Zm12.204 0a.75.75 0 0 1 1.026-.27l2.25 1.312a.75.75 0 0 1 .372.648v2.25a.75.75 0 0 1-1.5 0v-.944l-1.122.654a.75.75 0 1 1-.756-1.295l1.14-.665-1.14-.665a.75.75 0 0 1-.27-1.025Zm-9 5.25a.75.75 0 0 1 1.026-.27L12 11.882l1.872-1.092a.75.75 0 1 1 .756 1.295l-1.878 1.096V15a.75.75 0 0 1-1.5 0v-1.82l-1.878-1.095a.75.75 0 0 1-.27-1.025ZM3 13.5a.75.75 0 0 1 .75.75v1.82l1.878 1.095a.75.75 0 1 1-.756 1.295l-2.25-1.312a.75.75 0 0 1-.372-.648v-2.25A.75.75 0 0 1 3 13.5Zm18 0a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-.372.648l-2.25 1.312a.75.75 0 1 1-.756-1.295l1.878-1.096V14.25a.75.75 0 0 1 .75-.75Zm-9 5.25a.75.75 0 0 1 .75.75v.944l1.122-.654a.75.75 0 1 1 .756 1.295l-2.25 1.313a.75.75 0 0 1-.756 0l-2.25-1.313a.75.75 0 1 1 .756-1.295l1.122.654V19.5a.75.75 0 0 1 .75-.75Z"
+            clip-rule="evenodd" />
+        </svg>
+        <h3 class="mt-4 text-md font-medium text-white"><%= req.translations.noInstances %></h3>
+        <p class="mt-1 text-sm text-neutral-400"><%= req.translations.noInstancesText %></p>
+      </div>
+    <% } else { %>
+      <div class="overflow-hidden shadow ring-1 ring-white/5 rounded-lg">
+        <table class="min-w-full divide-y divide-white/10">
+          <thead class="bg-white/5">
+            <tr>
+              <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6">Instance</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Status</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">RAM Usage</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">CPU Usage</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5 bg-white/5">
+            <% instances.forEach(function (instance) { %>
+              <% if (instance._isRemote) { %>
+                <!-- Remote panel instance row -->
+                <% 
+                  var st = (instance.status || '').toLowerCase();
+                  var isRunning = st === 'running' || st === 'online';
+                  var isOffline = st === 'offline' || st === 'suspended' || st === 'stopped';
+                  var statusCls = isRunning ? 'bg-emerald-600/10 text-emerald-500' : isOffline ? 'bg-red-700/20 text-red-400' : 'bg-neutral-600/20 text-neutral-400';
+                  var dotCls = isRunning ? 'bg-emerald-400' : isOffline ? 'bg-red-400' : 'bg-neutral-500';
+                %>
+                <tr class="hover:bg-white/[0.05] cursor-pointer transition-colors"
+                    onclick="openRemoteControl(this)"
+                    data-rid='<%= instance._remoteId %>'
+                    data-sid='<%= instance.Id %>'
+                    data-name='<%= encodeURIComponent(instance.Name) %>'
+                    data-status='<%= instance.status %>'
+                    data-panel='<%= instance._remoteName %>'
+                    data-type='<%= instance._remoteType %>'
+                    data-mem='<%= (instance.limits && instance.limits.memory)||0 %>'
+                    data-cpu='<%= (instance.limits && instance.limits.cpu)||0 %>'>
+                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                    <div class="flex items-center gap-3">
+                      <div class="rounded-xl bg-indigo-500/10 p-2 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-400" fill="currentColor" viewBox="0 0 256 256"><path d="M208,40H48A16,16,0,0,0,32,56v48a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V56A16,16,0,0,0,208,40ZM180,88a12,12,0,1,1,12-12A12,12,0,0,1,180,88Z"/><path d="M208,136H48a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V152A16,16,0,0,0,208,136Zm-28,52a12,12,0,1,1,12-12A12,12,0,0,1,180,188Z"/></svg>
+                      </div>
+                      <div>
+                        <span class="font-medium text-white"><%= instance.Name %></span>
+                        <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span class="text-xs text-neutral-600 font-mono"><%= instance.Id %></span>
+                          <span class="text-xs text-emerald-400 font-medium">(remote)</span>
+                          <span class="text-neutral-700">·</span>
+                          <span class="text-xs text-neutral-500"><%= instance._remoteName %></span>
+                          <span class="text-xs px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 capitalize"><%= instance._remoteType %></span>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm">
+                    <span class="<%= statusCls %> px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 w-fit">
+                      <span class="inline-block w-1.5 h-1.5 rounded-full <%= dotCls %>"></span>
+                      <%= instance.status || 'unknown' %>
+                    </span>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-neutral-400">
+                    <%= (instance.limits && instance.limits.memory) ? (instance.limits.memory >= 1024 ? (instance.limits.memory/1024).toFixed(1)+'GB' : instance.limits.memory+'MB') : '—' %> limit
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-neutral-400">
+                    <%= (instance.limits && instance.limits.cpu) ? instance.limits.cpu+'%' : '—' %> limit
+                  </td>
+                </tr>
+              <% } else { %>
+                <!-- Local Skyport instance row -->
+                <tr onclick="window.location.href='/instance/<%= instance.Id %>';" class="hover:bg-white/[0.05] cursor-pointer transition-colors" data-instance-id="<%= instance.Id %>">
+                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                    <div class="flex items-center">
+                      <div class="rounded-xl bg-white/5 p-2 mr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-white">
+                          <path d="M12.378 1.602a.75.75 0 0 0-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03ZM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 0 0 .372-.648V7.93ZM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 0 0 .372.648l8.628 5.033Z" />
+                        </svg>
+                      </div>
+                      <a href="../instance/<%= instance.Id %>" class="font-medium text-white hover:text-neutral-300"><%= instance.Name %></a>
+                    </div>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm">
+                    <span data-status-bg class="bg-neutral-600/20 text-neutral-400 px-2.5 py-1 rounded-full text-xs font-medium">
+                      <span data-status>
+                        <svg class="animate-spin h-3 w-3 text-white mr-1 inline-flex" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <%= req.translations.loading %>
+                      </span>
+                    </span>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-neutral-400">
+                    <span data-ram-usage>
+                      <svg class="animate-spin h-3 w-3 text-white mr-1 inline-flex" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <%= req.translations.loading %>
+                    </span>
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-neutral-400">
+                    <span data-cpu-usage>
+                      <svg class="animate-spin h-3 w-3 text-white mr-1 inline-flex" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <%= req.translations.loading %>
+                    </span>
+                  </td>
+                </tr>
+              <% } %>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</main>
+
+<!-- ═══════════════ REMOTE INSTANCE CONTROL MODAL ═══════════════ -->
+<div id="rc-modal" class="hidden fixed inset-0 z-[100] items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeRC()"></div>
+  <div id="rc-box" class="relative bg-[#1c1c1c] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0">
+
+    <!-- Header -->
+    <div class="px-5 py-4 border-b border-white/8 flex items-center justify-between">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-8 h-8 rounded-lg bg-indigo-500/15 flex items-center justify-center shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 256 256"><path d="M208,40H48A16,16,0,0,0,32,56v48a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V56A16,16,0,0,0,208,40ZM180,88a12,12,0,1,1,12-12A12,12,0,0,1,180,88Z"/><path d="M208,136H48a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V152A16,16,0,0,0,208,136Zm-28,52a12,12,0,1,1,12-12A12,12,0,0,1,180,188Z"/></svg>
+        </div>
+        <div class="min-w-0">
+          <h3 class="text-white font-semibold text-sm truncate" id="rc-name">—</h3>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="text-neutral-600 text-xs font-mono truncate" id="rc-id">—</span>
+            <span id="rc-status-badge" class="text-xs px-1.5 py-0.5 rounded-full bg-neutral-600/20 text-neutral-400 flex items-center gap-1">
+              <span id="rc-dot" class="inline-block w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
+              <span id="rc-status-text">—</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <button onclick="closeRC()" class="text-neutral-500 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition shrink-0">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-5 py-4 flex flex-col gap-4">
+
+      <!-- Info strip -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-white/5 rounded-xl p-3 text-center">
+          <p class="text-neutral-500 text-xs mb-1">Panel</p>
+          <p class="text-white text-xs font-medium truncate" id="rc-panel-name">—</p>
+        </div>
+        <div class="bg-white/5 rounded-xl p-3 text-center">
+          <p class="text-neutral-500 text-xs mb-1">RAM limit</p>
+          <p class="text-white text-sm font-semibold" id="rc-ram">—</p>
+        </div>
+        <div class="bg-white/5 rounded-xl p-3 text-center">
+          <p class="text-neutral-500 text-xs mb-1">CPU limit</p>
+          <p class="text-white text-sm font-semibold" id="rc-cpu">—</p>
+        </div>
+      </div>
+
+      <!-- Power controls -->
+      <div>
+        <p class="text-neutral-400 text-xs uppercase tracking-wider font-medium mb-2">Power Controls</p>
+        <div class="flex gap-2">
+          <button onclick="rcPower('start')" class="flex-1 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 py-2.5 text-sm font-medium transition flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z" clip-rule="evenodd"/></svg>
+            Start
+          </button>
+          <button onclick="rcPower('restart')" class="flex-1 rounded-xl bg-yellow-600/20 hover:bg-yellow-600/40 text-yellow-400 py-2.5 text-sm font-medium transition flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4.755 10.059a7.5 7.5 0 0 1 12.548-3.364l1.903 1.903h-3.183a.75.75 0 1 0 0 1.5h4.992a.75.75 0 0 0 .75-.75V4.356a.75.75 0 0 0-1.5 0v3.18l-1.9-1.9A9 9 0 0 0 3.306 9.67a.75.75 0 1 0 1.45.388Zm15.408 3.352a.75.75 0 0 0-.919.53 7.5 7.5 0 0 1-12.548 3.364l-1.902-1.903h3.183a.75.75 0 0 0 0-1.5H2.984a.75.75 0 0 0-.75.75v4.992a.75.75 0 0 0 1.5 0v-3.18l1.9 1.9a9 9 0 0 0 15.059-4.035.75.75 0 0 0-.53-.918Z" clip-rule="evenodd"/></svg>
+            Restart
+          </button>
+          <button onclick="rcPower('stop')" class="flex-1 rounded-xl bg-red-600/20 hover:bg-red-600/40 text-red-400 py-2.5 text-sm font-medium transition flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4.5 7.5a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-9Z" clip-rule="evenodd"/></svg>
+            Stop
+          </button>
+          <button onclick="rcPower('kill')" class="rounded-xl bg-red-900/30 hover:bg-red-900/60 text-red-500 px-3 py-2.5 text-sm font-medium transition flex items-center justify-center gap-1" title="Force kill">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Console command -->
+      <div>
+        <p class="text-neutral-400 text-xs uppercase tracking-wider font-medium mb-2">Send Console Command</p>
+        <div class="flex gap-2">
+          <input id="rc-cmd" type="text" placeholder="say Hello, kick player, op admin"
+            class="flex-1 rounded-xl bg-white/5 border border-white/10 text-white text-sm px-3 py-2.5 focus:outline-none focus:border-white/30 transition placeholder:text-neutral-600"
+            onkeydown="if(event.key==='Enter') rcCommand()">
+          <button onclick="rcCommand()" class="rounded-xl bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-sm font-medium transition flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="currentColor" viewBox="0 0 256 256"><path d="M231.4,44.34s0,.1,0,.15l-58.2,185.37A15.93,15.93,0,0,1,158,240a16.2,16.2,0,0,1-14.54-9.23l-35.73-75.41L32.33,119.54a16,16,0,0,1-.2-29.7l185.35-58.2.15,0A16,16,0,0,1,231.4,44.34Z"/></svg>
+            Send
+          </button>
+        </div>
+      </div>
+
+      <!-- Result / feedback -->
+      <div id="rc-result" class="hidden rounded-xl px-3 py-2.5 text-xs font-mono leading-relaxed"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-5 py-3 border-t border-white/8 flex items-center justify-between">
+      <p class="text-neutral-600 text-xs" id="rc-type-label">—</p>
+      <button onclick="closeRC()" class="rounded-xl bg-white/8 hover:bg-white/15 text-neutral-400 hover:text-white px-4 py-1.5 text-xs font-medium transition">Close</button>
+    </div>
+  </div>
+</div>
+
+<%- include('../components/footer') %>
+
+<style>
+  #instance-toggle:checked + .bg-white\/10 {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  #instance-toggle:checked + .bg-white\/10 + .dot {
+    transform: translateX(100%);
+  }
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toggleSwitch = document.getElementById('instance-toggle');
+    if (toggleSwitch) {
+      toggleSwitch.addEventListener('change', function () {
+        if (this.checked) {
+          window.location.href = '/instances?see=other';
+        } else {
+          window.location.href = '/instances';
+        }
+      });
+    }
+
+    const instances = document.querySelectorAll('[data-instance-id]');
+    instances.forEach(instance => {
+      const containerId = instance.dataset.instanceId;
+      const isSecure = window.location.protocol === 'https:';
+      const wsProtocol = isSecure ? 'wss' : 'ws';
+      const wsPort = isSecure ? '' : `:<%= config.port %>`;
+      const socket = new WebSocket(`${wsProtocol}://<%= config.domain %>${wsPort}/stats/${containerId}`);
+
+      const statusElement = instance.querySelector('[data-status]');
+      const statusBg = instance.querySelector('[data-status-bg]');
+      const ramUsageElement = instance.querySelector('[data-ram-usage]');
+      const ramLimitElement = instance.querySelector('[data-ram-limit]');
+      const cpuUsageElement = instance.querySelector('[data-cpu-usage]');
+
+      function formatBytes(bytes, decimals = 2) {
+        if (bytes === 0) return '0.00 B';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['B', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+      }
+
+      function isValidJson(str) {
+            try {
+              JSON.parse(str);
+            } catch (e) {
+              return false;
+            }
+            return true;
+        }
+
+      socket.onmessage = event => {
+        let stats;
+
+        try {
+          if (isValidJson(event.data)) stats = JSON.parse(event.data);
+        } catch (e) {
+          if (event.data.includes('The skyportd instance appears to be down. Retrying...')) {
+            statusBg.classList.remove('bg-neutral-600/20');
+            statusBg.classList.add('bg-yellow-600/10');
+            statusElement.className = 'text-orange-500';
+            statusElement.textContent = 'Skyportd is Offline!';
+            socket.close();
+            return;
+          } else if (event.data.includes('Container not found')) {
+            statusBg.classList.remove('bg-neutral-600/20');
+            statusBg.classList.add('bg-yellow-600/10');
+            statusElement.className = 'text-orange-500';
+            statusElement.textContent = 'Container not found!';
+            socket.close();
+            return null;
+          }
+        }
+
+        if (stats && stats.error) {
+          console.error('Error fetching stats:', stats.error);
+          return;
+        }
+
+        if (!stats || stats.error) {
+          ramUsageElement.textContent = '0 B <%= req.translations.ramUsage %>';
+          cpuUsageElement.textContent = '0% <%= req.translations.cpuUsage %>';
+          return;
+        }
+
+        const ramUsageRaw = stats.memory_stats.usage / 1024;
+        const ramUsage = isNaN(ramUsageRaw) ? '0 B' : formatBytes(ramUsageRaw);
+        const ramLimitRaw = stats.memory_stats.limit / 1024;
+        const ramLimit = isNaN(ramLimitRaw) ? '0 B' : formatBytes(ramLimitRaw);
+        ramUsageElement.textContent = ramUsage + ' <%= req.translations.ramUsage %>';
+
+        if (isNaN(ramUsageRaw)) {
+          statusElement.className = 'text-neutral-500';
+          statusBg.classList.remove('bg-neutral-600/20');
+          statusBg.classList.add('bg-red-700/30');
+          statusElement.classList.add('text-red-500');
+          statusElement.textContent = 'Offline';
+        } else if (ramUsageRaw > 1) {
+          statusBg.classList.remove('bg-neutral-600/20');
+          statusBg.classList.add('bg-emerald-600/10');
+          statusElement.className = 'text-emerald-500';
+          statusElement.textContent = 'Online';
+        }
+
+        const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
+        const systemCpuDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
+        const cpuUsagePercent = (cpuDelta && systemCpuDelta && !isNaN(cpuDelta) && !isNaN(systemCpuDelta))
+          ? ((cpuDelta / systemCpuDelta) * 100).toFixed(2) + '%'
+          : '0%';
+        cpuUsageElement.textContent = cpuUsagePercent + ' <%= req.translations.cpuUsage %>';
+      };
+    });
+  });
+
+  // ─── REMOTE INSTANCE CONTROL ─────────────────────────────────
+  var _rc = null; // { remoteId, serverId }
+
+  function fmtMem(mb) {
+    if (!mb || mb === 0) return '∞';
+    return mb >= 1024 ? (mb/1024).toFixed(1)+'GB' : mb+'MB';
+  }
+
+  function openRemoteControl(el) {
+    var remoteId  = el.dataset.rid;
+    var serverId  = el.dataset.sid;
+    var serverName = decodeURIComponent(el.dataset.name || '');
+    var status    = el.dataset.status;
+    var panelName = el.dataset.panel;
+    var panelType = el.dataset.type;
+    var limits    = { memory: parseFloat(el.dataset.mem)||0, cpu: parseFloat(el.dataset.cpu)||0 };
+    _rc = { remoteId: remoteId, serverId: serverId };
+
+    // Populate info
+    document.getElementById('rc-name').textContent = serverName;
+    document.getElementById('rc-id').textContent = serverId;
+    document.getElementById('rc-panel-name').textContent = panelName;
+    document.getElementById('rc-type-label').textContent = panelName + ' · ' + panelType;
+    document.getElementById('rc-ram').textContent = fmtMem(limits && limits.memory);
+    document.getElementById('rc-cpu').textContent = (limits && limits.cpu ? limits.cpu + '%' : '∞');
+
+    // Status badge
+    var st = (status || '').toLowerCase();
+    var isRunning = st === 'running' || st === 'online';
+    var isOffline = st === 'offline' || st === 'suspended' || st === 'stopped';
+    var badge = document.getElementById('rc-status-badge');
+    var dot   = document.getElementById('rc-dot');
+    var stTxt = document.getElementById('rc-status-text');
+    stTxt.textContent = status || 'unknown';
+    if (isRunning) {
+      badge.className = 'text-xs px-1.5 py-0.5 rounded-full bg-emerald-700/20 text-emerald-400 flex items-center gap-1';
+      dot.className = 'inline-block w-1.5 h-1.5 rounded-full bg-emerald-400';
+    } else if (isOffline) {
+      badge.className = 'text-xs px-1.5 py-0.5 rounded-full bg-red-700/20 text-red-400 flex items-center gap-1';
+      dot.className = 'inline-block w-1.5 h-1.5 rounded-full bg-red-400';
+    } else {
+      badge.className = 'text-xs px-1.5 py-0.5 rounded-full bg-neutral-600/20 text-neutral-400 flex items-center gap-1';
+      dot.className = 'inline-block w-1.5 h-1.5 rounded-full bg-neutral-500';
+    }
+
+    document.getElementById('rc-cmd').value = '';
+    document.getElementById('rc-result').classList.add('hidden');
+
+    // Show modal with animation
+    var modal = document.getElementById('rc-modal');
+    var box   = document.getElementById('rc-box');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(function() {
+      box.classList.remove('scale-95', 'opacity-0');
+    }, 10);
+  }
+
+  function closeRC() {
+    var box = document.getElementById('rc-box');
+    box.classList.add('scale-95', 'opacity-0');
+    setTimeout(function() {
+      var modal = document.getElementById('rc-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }, 250);
+    _rc = null;
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeRC();
+  });
+
+  function showRCResult(msg, ok) {
+    var el = document.getElementById('rc-result');
+    el.textContent = msg;
+    el.className = 'rounded-xl px-3 py-2.5 text-xs font-mono leading-relaxed ' + (ok ? 'bg-emerald-900/30 text-emerald-400' : 'bg-red-900/30 text-red-400');
+    el.classList.remove('hidden');
+  }
+
+  var rcActionLabels = { start: 'Start', stop: 'Stop', restart: 'Restart', kill: 'Force kill' };
+
+  function rcPower(action) {
+    if (!_rc) return;
+    fetch('/remote-instances/power/' + _rc.remoteId + '/' + _rc.serverId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: action })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var label = rcActionLabels[action] || action;
+      if (d.success) {
+        showRCResult('✓ Action sent: ' + label, true);
+        window.showPopup && window.showPopup('success', 'Success', 'Action sent: ' + label);
+      } else {
+        showRCResult('✗ ' + (d.error || 'Unknown error'), false);
+        window.showPopup && window.showPopup('error', 'Failed', d.error || 'Failed to send command');
+      }
+    })
+    .catch(function(e) {
+      showRCResult('✗ Network error: ' + e.message, false);
+      window.showPopup && window.showPopup('error', 'Network error', e.message);
+    });
+  }
+
+  function rcCommand() {
+    if (!_rc) return;
+    var cmd = document.getElementById('rc-cmd').value.trim();
+    if (!cmd) return;
+    fetch('/remote-instances/command/' + _rc.remoteId + '/' + _rc.serverId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: cmd })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        showRCResult('✓ Sent: ' + cmd, true);
+        document.getElementById('rc-cmd').value = '';
+        window.showPopup && window.showPopup('success', 'Command sent', cmd);
+      } else {
+        showRCResult('✗ ' + (d.error || 'Lỗi'), false);
+        window.showPopup && window.showPopup('error', 'Send lệnh thất bại', d.error || 'Could not send');
+      }
+    })
+    .catch(function(e) {
+      showRCResult('✗ Network error: ' + e.message, false);
+      window.showPopup && window.showPopup('error', 'Network error', e.message);
+    });
+  }
+</script>

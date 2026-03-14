@@ -1,0 +1,195 @@
+<%- include('../../components/template') %>
+
+<main id="content">
+   <div class="bg-transparent">
+      <div class="sm:flex sm:items-center px-8 pt-4">
+         <div class="sm:flex-auto">
+            <h1 class="text-base font-medium leading-6 text-white"><%= req.translations.settings %></h1>
+            <p class="mt-1 tracking-tight text-sm text-neutral-500"><%= req.translations.changeSettings %></p>
+         </div>
+      </div>
+   </div>
+   <%- include('../../components/settings') %>
+
+   <!-- Colors & Layout -->
+   <div class="flex flex-col bg-white/5 m-8 pt-0 py-5 rounded-xl">
+      <h1 class="text-white text-[18px] px-5 py-4 mb-1 w-full bg-white/5 rounded-t-xl font-medium">Theme</h1>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 px-5">
+         <div id="changenameform" class="mt-4">
+            <form action="/admin/settings/change/theme/color" method="POST">
+               <label class="text-neutral-400 text-sm tracking-tight mb-2">Button color</label>
+               <select name="buttoncolor" id="button-color" class="rounded-xl focus:ring-transparent focus:border-transparent text-white text-sm mt-2 w-fit items-center transition justify-left gap-16 hover:bg-white/5 px-4 py-2 flex border-white/5 bg-white/5 placeholder:text-white/20 text-white border border-black/10" style="width: 120px;">
+                  <option value="bg-white hover:bg-neutral-300 text-neutral-800" class="text-neutral-800" <%= theme['button-color'] == 'bg-white hover:bg-neutral-300 text-neutral-800' ? 'selected' : '' %>>White</option>
+                  <option value="bg-blue-500 hover:bg-blue-600 text-neutral-100" class="text-neutral-800" <%= theme['button-color'] == 'bg-blue-500 hover:bg-blue-600 text-neutral-100' ? 'selected' : '' %>>Blue</option>
+                  <option value="bg-pink-500 hover:bg-pink-600 text-neutral-100" class="text-neutral-800" <%= theme['button-color'] == 'bg-pink-500 hover:bg-pink-600 text-neutral-100' ? 'selected' : '' %>>Pink</option>
+                  <option value="bg-indigo-500 hover:bg-indigo-600 text-neutral-100" class="text-neutral-800" <%= theme['button-color'] == 'bg-indigo-500 hover:bg-indigo-600 text-neutral-100' ? 'selected' : '' %>>Indigo</option>
+                  <option value="bg-emerald-500 hover:bg-emerald-600 text-neutral-100" class="text-neutral-800" <%= theme['button-color'] == 'bg-emerald-500 hover:bg-emerald-600 text-neutral-100' ? 'selected' : '' %>>Green</option>
+                  <option value="bg-violet-500 hover:bg-violet-600 text-neutral-100" class="text-neutral-800" <%= theme['button-color'] == 'bg-violet-500 hover:bg-violet-600 text-neutral-100' ? 'selected' : '' %>>Violet</option>
+                  <option value="bg-red-500 hover:bg-red-600 text-neutral-100" class="text-neutral-800" <%= theme['button-color'] == 'bg-red-500 hover:bg-red-600 text-neutral-100' ? 'selected' : '' %>>Red</option>
+               </select>
+               <button type="submit" class="mt-6 block rounded-xl <%= theme['button-color'] %> px-3 py-2 text-center text-sm font-medium shadow-lg transition"><%= req.translations.save %></button>
+            </form>
+         </div>
+         <div id="changePanelThemeform" class="mt-6">
+            <form action="/admin/settings/change/theme/color" method="POST">
+               <label class="text-neutral-400 text-sm tracking-tight mb-2">Panel Theme</label>
+               <select name="paneltheme" id="paneltheme" class="rounded-xl focus:ring-transparent focus:border-transparent text-white text-sm mt-2 w-fit items-center transition justify-left gap-16 hover:bg-white/5 px-4 py-2 flex border-white/5 bg-white/5 placeholder:text-white/20 text-white border border-black/10" style="width: 160px;">
+                  <option value="bg-[#141414]" class="text-neutral-800" <%= theme['paneltheme-color'] == 'bg-[#141414]' ? 'selected' : '' %>>Dark</option>
+                  <option value="bg-[#1f1e1e]" class="text-neutral-800" <%= theme['paneltheme-color'] == 'bg-[#1f1e1e]' ? 'selected' : '' %>>Dark Soft</option>
+                  <option value="bg-sky-950" class="text-neutral-800" <%= theme['paneltheme-color'] == 'bg-sky-950' ? 'selected' : '' %>>Sky Blue</option>
+                  <option value="bg-[#002b36]" class="text-neutral-800" <%= theme['paneltheme-color'] == 'bg-[#002b36]' ? 'selected' : '' %>>Solarized Dark</option>
+                  <option value="bg-fuchsia-950" class="text-neutral-800" <%= theme['paneltheme-color'] == 'bg-fuchsia-950' ? 'selected' : '' %>>Fuchsia</option>
+                  <option value="bg-[#33404d]" class="text-neutral-800" <%= theme['paneltheme-color'] == 'bg-[#33404d]' ? 'selected' : '' %>>Pterodactyl</option>
+                  <option value="bg-neutral-800" class="text-neutral-800" <%= theme['paneltheme-color'] == 'bg-neutral-800' ? 'selected' : '' %>>Bright</option>
+                  <option value="bg-zinc-950" class="text-neutral-800" <%= theme['paneltheme-color'] == 'bg-zinc-950' ? 'selected' : '' %>>Zinc Black</option>
+                  <option value="bg-slate-950" class="text-neutral-800" <%= theme['paneltheme-color'] == 'bg-slate-950' ? 'selected' : '' %>>Slate Night</option>
+                  <option value="bg-[#0a0a0a]" class="text-neutral-800" <%= theme['paneltheme-color'] == 'bg-[#0a0a0a]' ? 'selected' : '' %>>Pitch Black</option>
+               </select>
+               <button type="submit" class="mt-6 block rounded-xl <%= theme['button-color'] %> px-3 py-2 text-center text-sm font-medium shadow-lg transition"><%= req.translations.save %></button>
+            </form>
+         </div>
+         <div id="togglefooterform" class="mt-6">
+            <form action="/admin/settings/toggle/theme/footer" method="POST">
+               <div class="flex items-center mb-2">
+                  <% if (settings.footer === true) { %>
+                  <span class="text-neutral-400 text-sm tracking-tight mb-2">Skyport Credits: <span class="font-medium text-green-500"><%= req.translations.enabled %></span></span>
+                  <% } else { %>
+                  <span class="text-neutral-400 text-sm tracking-tight mb-2">Skyport Credits: <span class="font-medium text-red-500"><%= req.translations.disabled %></span></span>
+                  <% } %>
+               </div>
+               <div class="flex">
+                  <% if (settings.footer === true) { %>
+                  <button type="submit" class="block rounded-l-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition"><%= req.translations.disable %></button>
+                  <button type="button" class="block rounded-r-lg bg-green-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled><%= req.translations.enable %></button>
+                  <% } else { %>
+                  <button type="button" class="block rounded-l-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled><%= req.translations.disable %></button>
+                  <button type="submit" class="block rounded-r-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition"><%= req.translations.enable %></button>
+                  <% } %>
+               </div>
+            </form>
+            <div class="mt-4 mb-4">
+            <form action="/admin/settings/change/theme/color" method="POST">
+               <div class="flex items-center mb-2">
+                  <% if (theme['sidebar-direction'] === "right") { %>
+                  <span class="text-neutral-400 text-sm tracking-tight mb-2">Sidebar: <span class="font-medium text-purple-400">Right</span></span>
+                  <% } else { %>
+                  <span class="text-neutral-400 text-sm tracking-tight mb-2">Sidebar: <span class="font-medium text-blue-400">Left</span></span>
+                  <% } %>
+               </div>
+               <div class="flex">
+                  <input name="sidebardirection" type="hidden" value="none">
+                  <% if (theme['sidebar-direction'] === "right") { %>
+                  <button type="submit" class="block rounded-l-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition">Left</button>
+                  <button type="button" class="block rounded-r-lg bg-purple-700 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled>Right</button>
+                  <% } else { %>
+                  <button type="button" class="block rounded-l-lg bg-blue-700 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled>Left</button>
+                  <button type="submit" class="block rounded-r-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition">Right</button>
+                  <% } %>
+               </div>
+            </form>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <!-- Background Image + Cloudflare Turnstile - side by side -->
+   <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 mx-8 mb-8 gap-5">
+
+   <!-- Background Image -->
+   <div class="flex flex-col bg-white/5 pt-0 py-5 rounded-xl">
+      <h1 class="text-white text-[18px] px-5 py-4 mb-1 w-full bg-white/5 rounded-t-xl font-medium flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-neutral-400" fill="currentColor" viewBox="0 0 256 256"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H216V160H40ZM216,200H40V176H216Z"/></svg>
+        Background Image
+      </h1>
+      <div class="px-5 pt-4">
+        <% if (theme['background-image']) { %>
+        <div class="mb-4 p-3 rounded-xl bg-white/5 flex items-center gap-3">
+          <img src="<%= theme['background-image'] %>" class="w-20 h-12 object-cover rounded-lg border border-white/10" onerror="this.style.display='none'">
+          <div class="flex-1 min-w-0">
+            <p class="text-white text-sm font-medium">Ảnh nền hiện tại</p>
+            <p class="text-neutral-500 text-xs truncate font-mono"><%= theme['background-image'] %></p>
+          </div>
+          <form action="/admin/settings/change/background" method="POST">
+            <button type="submit" class="rounded-xl bg-red-700/20 hover:bg-red-600/40 text-red-400 px-3 py-1.5 text-xs font-medium border border-red-700/20 transition">Xoá</button>
+          </form>
+        </div>
+        <% } %>
+        <div class="flex flex-col gap-5">
+          <form action="/admin/settings/change/background" method="POST" enctype="multipart/form-data">
+            <label class="text-neutral-400 text-sm block mb-2">Upload ảnh nền</label>
+            <input type="file" name="backgroundImage" accept="image/*" class="block w-full text-sm text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-white/10 file:text-white hover:file:bg-white/20 transition cursor-pointer">
+            <button type="submit" class="mt-3 block rounded-xl <%= theme['button-color'] %> px-3 py-2 text-sm font-medium shadow-lg transition">Upload</button>
+          </form>
+          <form action="/admin/settings/change/background" method="POST">
+            <label class="text-neutral-400 text-sm block mb-2">URL ảnh nền (hoặc video)</label>
+            <input type="url" name="backgroundUrl" placeholder="https://example.com/bg.jpg" value="<%= theme['background-image'] || '' %>" class="rounded-xl text-white text-sm w-full px-3 py-2.5 bg-white/5 border border-white/10 placeholder:text-white/20 focus:outline-none focus:border-indigo-500/50 transition">
+            <div class="flex items-center gap-3 mt-2">
+              <select name="backgroundType" class="appearance-none rounded-xl text-white text-sm px-3 py-2 bg-white/5 border border-white/10 focus:outline-none focus:border-indigo-500/50 transition">
+                <option value="image" class="bg-neutral-900">Ảnh</option>
+                <option value="video" class="bg-neutral-900">Video (mp4/webm)</option>
+              </select>
+              <button type="submit" class="block rounded-xl <%= theme['button-color'] %> px-3 py-2 text-sm font-medium shadow-lg transition">Lưu URL</button>
+            </div>
+          </form>
+        </div>
+      </div>
+   </div>
+
+   <!-- Cloudflare Turnstile -->
+   <div class="flex flex-col bg-white/5 pt-0 py-5 rounded-xl">
+      <h1 class="text-white text-[18px] px-5 py-4 mb-1 w-full bg-white/5 rounded-t-xl font-medium flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 256 256"><path d="M229.19,163.10l-96-160a8,8,0,0,0-13.78,0l-96,160A8,8,0,0,0,32,176H224a8,8,0,0,0,6.83-12.90ZM128,152a12,12,0,1,1,12-12A12,12,0,0,1,128,152Zm8-48a8,8,0,0,1-16,0V80a8,8,0,0,1,16,0Z"/></svg>
+        Cloudflare Turnstile (Browser Verification)
+      </h1>
+      <div class="px-5 pt-4">
+        <!-- Meme image for fun -->
+        <div class="mb-5 flex items-start gap-4">
+          <img src="https://media1.tenor.com/m/7_KRHOBcSnEAAAAC/happy-birthday-ashleigh.gif" alt="Verification meme" class="w-24 h-24 rounded-xl object-cover border border-white/10 shrink-0" onerror="this.style.display='none'">
+          <div>
+            <p class="text-white text-sm font-medium mb-1">Browser Check</p>
+            <p class="text-neutral-400 text-sm">Kích hoạt Cloudflare Turnstile để xác minh người dùng trước khi vào trang đăng nhập. Yêu cầu Cloudflare account và domain được cấu hình.</p>
+            <div class="mt-2 flex items-center gap-2">
+              <% if (settings.turnstile && settings.turnstile.enabled) { %>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-green-700/25 text-green-400">Đang bật</span>
+              <% } else { %>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-neutral-700/25 text-neutral-400">Đang tắt</span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-4">
+          <form action="/admin/settings/change/turnstile" method="POST" class="flex flex-col gap-3">
+            <div>
+              <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-1.5">Site Key</label>
+              <input type="text" name="siteKey" value="<%= (settings.turnstile && settings.turnstile.siteKey) || '' %>" placeholder="0x4AAAAAAAxxxxxxxxxxxxxxxxxx" class="rounded-xl text-white text-sm w-full px-3 py-2.5 bg-white/5 border border-white/10 placeholder:text-white/20 focus:outline-none focus:border-orange-500/50 transition">
+            </div>
+            <div>
+              <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-1.5">Secret Key</label>
+              <input type="password" name="secretKey" value="<%= (settings.turnstile && settings.turnstile.secretKey) || '' %>" placeholder="0x4AAAAAAAxxxxxxxxxxxxxxxxxx" class="rounded-xl text-white text-sm w-full px-3 py-2.5 bg-white/5 border border-white/10 placeholder:text-white/20 focus:outline-none focus:border-orange-500/50 transition">
+            </div>
+            <button type="submit" class="block rounded-xl <%= theme['button-color'] %> px-3 py-2 text-sm font-medium shadow-lg transition w-fit">Lưu Keys</button>
+          </form>
+          <div>
+            <p class="text-neutral-400 text-xs uppercase tracking-wider font-medium mb-3">Kích hoạt / Tắt</p>
+            <form action="/admin/settings/toggle/turnstile" method="POST">
+              <div class="flex">
+                <% if (settings.turnstile && settings.turnstile.enabled) { %>
+                <button type="submit" class="block rounded-l-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition">Tắt</button>
+                <button type="button" class="block rounded-r-lg bg-orange-500 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled>Bật</button>
+                <% } else { %>
+                <button type="button" class="block rounded-l-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled>Tắt</button>
+                <button type="submit" class="block rounded-r-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition">Bật</button>
+                <% } %>
+              </div>
+            </form>
+            <p class="text-neutral-600 text-xs mt-3">Lấy keys tại <a href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank" class="text-orange-400 hover:text-orange-300 transition">dash.cloudflare.com > Turnstile</a></p>
+          </div>
+        </div>
+      </div>
+   </div>
+
+   </div><!-- end grid Background+Turnstile -->
+
+</main>
+
+<%- include('../../components/footer') %>

@@ -1,0 +1,264 @@
+<%- include('components/template') %>
+
+<main id="content">
+  <div class="px-6 sm:px-8 pt-4 pb-8 max-w-3xl">
+    <h1 class="text-base font-medium text-white mb-1"><%= req.translations.updateAccount %></h1>
+    <p class="text-sm text-neutral-500 mb-6">Quản lý thông tin tài khoản và bảo mật của bạn.</p>
+
+    <!-- Profile card -->
+    <div class="bg-white/5 rounded-2xl overflow-hidden mb-5 border border-white/5">
+      <div class="px-5 py-4 bg-white/5 border-b border-white/5">
+        <p class="text-sm font-medium text-white">Hồ sơ</p>
+      </div>
+      <div class="px-5 py-5 flex items-center gap-5">
+        <div class="relative group shrink-0">
+          <img id="avatar-preview"
+            src="<%= user.avatar || 'https://api.dicebear.com/9.x/thumbs/svg?seed=' + user.username %>"
+            class="h-16 w-16 rounded-2xl object-cover border border-white/10"
+            alt="Avatar">
+          <label class="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/60 opacity-0 group-hover:opacity-100 transition cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M229.66,58.34l-32-32a8,8,0,0,0-11.32,0l-96,96A8,8,0,0,0,88,128v32a8,8,0,0,0,8,8h32a8,8,0,0,0,5.66-2.34l96-96A8,8,0,0,0,229.66,58.34ZM124.69,152H104V131.31l72-72L196.69,80ZM208,210H48a8,8,0,0,0,0,16H208a8,8,0,0,0,0-16Z"/>
+            </svg>
+            <input type="file" id="avatar-input" accept="image/*" class="hidden" onchange="uploadAvatar(this)">
+          </label>
+        </div>
+        <div>
+          <p class="text-white font-medium"><%= user.username %></p>
+          <p class="text-neutral-500 text-sm"><%= user.email %></p>
+          <p class="text-neutral-600 text-xs mt-0.5 font-mono">ID: <%= user.userId.substring(0, 8) %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change Username -->
+    <div class="bg-white/5 rounded-2xl overflow-hidden mb-5 border border-white/5">
+      <div class="px-5 py-4 bg-white/5 border-b border-white/5">
+        <p class="text-sm font-medium text-white"><%= req.translations.username %></p>
+      </div>
+      <div class="px-5 py-5">
+        <form id="change-username-form" action="/change-username" method="POST" class="flex flex-col gap-3">
+          <div>
+            <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-1.5"><%= req.translations.username %></label>
+            <input id="username" type="text" name="username"
+              class="rounded-xl text-white text-sm w-full px-3 py-2 bg-white/5 border border-white/10 placeholder:text-white/25 focus:outline-none focus:border-white/30 transition"
+              placeholder="<%= user.username %>">
+            <span id="username-feedback" class="hidden mt-2 inline-flex items-center text-xs px-2.5 py-1 rounded-full bg-white/5 text-neutral-400"></span>
+          </div>
+          <div class="flex justify-end">
+            <button type="submit" id="change-username-btn"
+              class="rounded-xl bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled><%= req.translations.updateUsername %></button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Change Password -->
+    <div class="bg-white/5 rounded-2xl overflow-hidden mb-5 border border-white/5">
+      <div class="px-5 py-4 bg-white/5 border-b border-white/5">
+        <p class="text-sm font-medium text-white"><%= req.translations.newPassword %></p>
+      </div>
+      <div class="px-5 py-5">
+        <form id="change-password-form" action="/change-password" method="POST" class="flex flex-col gap-3">
+          <div>
+            <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-1.5"><%= req.translations.currentPassword %></label>
+            <input id="currentPassword" type="password" name="currentPassword"
+              class="rounded-xl text-white text-sm w-full px-3 py-2 bg-white/5 border border-white/10 placeholder:text-white/25 focus:outline-none focus:border-white/30 transition"
+              placeholder="••••••••">
+            <span id="current-password-feedback" class="hidden mt-2 inline-flex items-center text-xs px-2.5 py-1 rounded-full bg-white/5 text-neutral-400"></span>
+          </div>
+          <div>
+            <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-1.5"><%= req.translations.newPassword %></label>
+            <input id="newPassword" type="password" name="newPassword"
+              class="rounded-xl text-white text-sm w-full px-3 py-2 bg-white/5 border border-white/10 placeholder:text-white/25 focus:outline-none focus:border-white/30 transition disabled:opacity-40"
+              placeholder="••••••••" disabled>
+          </div>
+          <div class="flex justify-end">
+            <button type="submit"
+              class="rounded-xl bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled><%= req.translations.update_password %></button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Two-Factor Authentication -->
+    <div class="bg-white/5 rounded-2xl overflow-hidden border border-white/5">
+      <div class="px-5 py-4 bg-white/5 border-b border-white/5 flex items-center justify-between">
+        <p class="text-sm font-medium text-white">Two-Factor Authentication</p>
+        <span class="text-xs px-2 py-0.5 rounded-full <%= user.twoFAEnabled ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-neutral-400' %>">
+          <%= user.twoFAEnabled ? req.translations.enabled : req.translations.disabled %>
+        </span>
+      </div>
+      <div class="px-5 py-5">
+        <p class="text-neutral-400 text-sm mb-4">
+          <% if (user.twoFAEnabled) { %>
+          2FA đang bảo vệ tài khoản của bạn. Bạn có thể tắt nếu không cần.
+          <% } else { %>
+          Bảo vệ tài khoản bằng xác thực hai lớp khi đăng nhập.
+          <% } %>
+        </p>
+        <% if (user.twoFAEnabled !== true) { %>
+        <button onclick="window.location.href='/enable-2fa'"
+          class="rounded-xl bg-white/10 hover:bg-white/20 text-white px-4 py-2 text-xs font-medium transition">
+          <%= req.translations.enabled2FA %>
+        </button>
+        <% } else { %>
+        <form action="/disable-2fa" method="POST" class="inline">
+          <button type="submit" class="rounded-xl bg-red-600/30 hover:bg-red-600/50 text-red-300 px-4 py-2 text-xs font-medium transition">
+            <%= req.translations.disable2FA %>
+          </button>
+        </form>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</main>
+
+<%- include('components/footer') %>
+
+<style>
+  #username-feedback, #current-password-feedback { transition: opacity 0.2s; }
+</style>
+
+<script>
+async function uploadAvatar(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('avatar', file);
+  try {
+    const res = await fetch('/account/avatar', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.success) {
+      const t = Date.now();
+      document.getElementById('avatar-preview').src = data.avatar + '?t=' + t;
+      const da = document.getElementById('dropdown-avatar');
+      if (da) da.src = data.avatar + '?t=' + t;
+      window.showPopup && window.showPopup('success', 'Avatar updated', 'Profile picture changed.');
+    } else {
+      window.showPopup && window.showPopup('error', 'Upload failed', data.message || 'Unknown error');
+    }
+  } catch (e) {
+    window.showPopup && window.showPopup('error', 'Error', 'Failed to upload avatar');
+  }
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const currentPasswordInput = document.getElementById('currentPassword');
+  const newPasswordInput = document.getElementById('newPassword');
+  const currentPasswordFeedback = document.getElementById('current-password-feedback');
+  const changePasswordBtn = document.querySelector('#change-password-form button[type="submit"]');
+  let passwordDebounce;
+  let controller;
+
+  function showPasswordFeedback(text, isGood) {
+    currentPasswordFeedback.textContent = text;
+    currentPasswordFeedback.className = 'mt-2 inline-flex items-center text-xs px-2.5 py-1 rounded-full ' + (isGood ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400');
+    currentPasswordFeedback.classList.remove('hidden');
+  }
+
+  currentPasswordInput.addEventListener('input', function() {
+    clearTimeout(passwordDebounce);
+    newPasswordInput.disabled = true;
+    newPasswordInput.value = '';
+    changePasswordBtn.disabled = true;
+
+    const val = currentPasswordInput.value.trim();
+    if (!val) { currentPasswordFeedback.classList.add('hidden'); return; }
+
+    currentPasswordFeedback.textContent = '<%= req.translations.checking %>';
+    currentPasswordFeedback.className = 'mt-2 inline-flex items-center text-xs px-2.5 py-1 rounded-full bg-white/5 text-neutral-400';
+    currentPasswordFeedback.classList.remove('hidden');
+
+    if (controller) controller.abort();
+    controller = new AbortController();
+
+    passwordDebounce = setTimeout(async function() {
+      try {
+        const res = await fetch('/validate-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ currentPassword: val }),
+          signal: controller.signal
+        });
+        const data = await res.json();
+        if (data.valid) {
+          showPasswordFeedback('<%= req.translations.correctPassword %>', true);
+          newPasswordInput.disabled = false;
+        } else {
+          showPasswordFeedback('<%= req.translations.incorrectPassword %>', false);
+          newPasswordInput.disabled = true;
+        }
+      } catch (e) {
+        if (e.name !== 'AbortError') currentPasswordFeedback.classList.add('hidden');
+      }
+    }, 500);
+  });
+
+  newPasswordInput.addEventListener('input', function() {
+    changePasswordBtn.disabled = newPasswordInput.value.trim() === '' || currentPasswordInput.value.trim() === '';
+  });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const usernameInput = document.getElementById('username');
+  const changeUsernameBtn = document.getElementById('change-username-btn');
+  const usernameFeedback = document.getElementById('username-feedback');
+  let debounce;
+
+  function showUsernameFeedback(text, isGood) {
+    usernameFeedback.textContent = text;
+    usernameFeedback.className = 'mt-2 inline-flex items-center text-xs px-2.5 py-1 rounded-full ' + (isGood ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400');
+    usernameFeedback.classList.remove('hidden');
+  }
+
+  usernameInput.addEventListener('input', function() {
+    clearTimeout(debounce);
+    const val = usernameInput.value.trim().toLowerCase();
+    if (!val) { usernameFeedback.classList.add('hidden'); changeUsernameBtn.disabled = true; return; }
+
+    usernameFeedback.textContent = '<%= req.translations.checking %>';
+    usernameFeedback.className = 'mt-2 inline-flex items-center text-xs px-2.5 py-1 rounded-full bg-white/5 text-neutral-400';
+    usernameFeedback.classList.remove('hidden');
+
+    debounce = setTimeout(async function() {
+      const res = await fetch('/check-username?username=' + encodeURIComponent(val));
+      const data = await res.json();
+      if (data.exists) {
+        showUsernameFeedback('<%= req.translations.usernameTaken %>', false);
+        changeUsernameBtn.disabled = true;
+      } else {
+        showUsernameFeedback('<%= req.translations.usernameIsNotTaken %>', true);
+        changeUsernameBtn.disabled = false;
+      }
+    }, 500);
+  });
+
+  document.getElementById('change-username-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const newUsername = usernameInput.value.trim();
+    try {
+      const res = await fetch('/update-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentUsername: '<%= user.username %>', newUsername })
+      });
+      if (res.ok) {
+        window.showPopup && window.showPopup('success', 'Username updated', 'Redirecting...');
+        setTimeout(function() { window.location.href = '/login?err=UpdatedCredentials'; }, 1200);
+      } else {
+        const msg = await res.text();
+        window.showPopup && window.showPopup('error', 'Error', msg);
+      }
+    } catch (err) {
+      window.showPopup && window.showPopup('error', 'Error', '<%= req.translations.updatingUsernameError %>');
+    }
+  });
+});
+</script>

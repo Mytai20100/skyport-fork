@@ -1,0 +1,219 @@
+<%- include('../components/template') %>
+
+<main id="content">
+  <% if (req.query.saved) { %>
+  <script>document.addEventListener('DOMContentLoaded',function(){ window.showPopup && window.showPopup('success','Đã lưu','Thông tin panel đã được cập nhật.'); });</script>
+  <% } %>
+
+  <div class="px-8 pt-4 pb-2 flex items-center gap-3">
+    <a href="/remote-instances" class="text-neutral-500 hover:text-white transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/></svg>
+    </a>
+    <div>
+      <h1 class="text-base font-medium text-white"><%= remote.displayName %></h1>
+      <p class="text-xs text-neutral-500"><%= remote.panelUrl %></p>
+    </div>
+    <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 text-neutral-400 capitalize"><%= remote.panelType %></span>
+  </div>
+
+  <div class="px-8 pb-8 grid grid-cols-1 lg:grid-cols-3 gap-5 mt-3">
+
+    <!-- LEFT: Status + Ping -->
+    <div class="lg:col-span-2 flex flex-col gap-5">
+
+      <!-- Ping card -->
+      <div class="bg-white/5 rounded-2xl overflow-hidden border border-white/5">
+        <div class="px-5 py-3.5 bg-white/5 border-b border-white/5 flex items-center justify-between">
+          <p class="text-sm font-medium text-white">Kết nối & Ping</p>
+          <button id="btn-ping" onclick="runPing()" class="rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-xs font-medium transition flex items-center gap-1.5">
+            <svg id="ping-spin" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 hidden animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+            Ping ngay
+          </button>
+        </div>
+        <div class="px-5 py-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="bg-white/5 rounded-xl p-3 text-center">
+            <p class="text-neutral-500 text-xs mb-1">Trạng thái</p>
+            <span id="ping-status" class="text-sm font-semibold text-neutral-400">—</span>
+          </div>
+          <div class="bg-white/5 rounded-xl p-3 text-center">
+            <p class="text-neutral-500 text-xs mb-1">Latency</p>
+            <span id="ping-latency" class="text-sm font-semibold text-neutral-400">—</span>
+          </div>
+          <div class="bg-white/5 rounded-xl p-3 text-center">
+            <p class="text-neutral-500 text-xs mb-1">HTTP Status</p>
+            <span id="ping-http" class="text-sm font-semibold text-neutral-400">—</span>
+          </div>
+          <div class="bg-white/5 rounded-xl p-3 text-center">
+            <p class="text-neutral-500 text-xs mb-1">Token</p>
+            <span id="ping-token" class="text-sm font-semibold text-neutral-400">—</span>
+          </div>
+        </div>
+        <div id="ping-extra" class="hidden px-5 pb-4">
+          <p class="text-xs text-neutral-600 font-mono" id="ping-server-header"></p>
+          <p class="text-xs text-neutral-600 mt-0.5" id="ping-pagination"></p>
+        </div>
+      </div>
+
+      <!-- Info card -->
+      <div class="bg-white/5 rounded-2xl overflow-hidden border border-white/5">
+        <div class="px-5 py-3.5 bg-white/5 border-b border-white/5">
+          <p class="text-sm font-medium text-white">Thông tin cơ bản</p>
+        </div>
+        <div class="px-5 py-5 flex flex-col gap-3 text-sm">
+          <div class="flex justify-between items-center py-2 border-b border-white/5">
+            <span class="text-neutral-500">Panel URL</span>
+            <a href="<%= remote.panelUrl %>" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-mono text-xs truncate max-w-xs"><%= remote.panelUrl %></a>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-white/5">
+            <span class="text-neutral-500">Loại panel</span>
+            <span class="text-white capitalize"><%= remote.panelType %></span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-white/5">
+            <span class="text-neutral-500">Sở hữu bởi</span>
+            <% const owner = users.find(u => u.userId === remote.ownerId); %>
+            <span class="text-white"><%= owner ? owner.username : remote.ownerId %></span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-white/5">
+            <span class="text-neutral-500">ID</span>
+            <span class="text-neutral-400 font-mono text-xs"><%= remote.id %></span>
+          </div>
+          <div class="flex justify-between items-center py-2">
+            <span class="text-neutral-500">Ngày thêm</span>
+            <span class="text-neutral-400 text-xs"><%= new Date(remote.createdAt).toLocaleString('vi-VN') %></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Edit form -->
+    <div>
+      <div class="bg-white/5 rounded-2xl overflow-hidden border border-white/5 sticky top-20">
+        <div class="px-5 py-3.5 bg-white/5 border-b border-white/5">
+          <p class="text-sm font-medium text-white">Chỉnh sửa</p>
+        </div>
+        <div class="px-5 py-5">
+          <form action="/remote-instances/edit/<%= remote.id %>" method="POST" class="flex flex-col gap-3">
+            <div>
+              <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-1">Tên hiển thị</label>
+              <input name="displayName" type="text" value="<%= remote.displayName %>" required
+                class="rounded-xl text-white text-sm w-full px-3 py-2 bg-white/5 border border-white/10 focus:outline-none focus:border-white/30 transition">
+            </div>
+            <div>
+              <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-1">Panel URL</label>
+              <input name="panelUrl" type="url" value="<%= remote.panelUrl %>" required
+                class="rounded-xl text-white text-sm w-full px-3 py-2 bg-white/5 border border-white/10 focus:outline-none focus:border-white/30 transition">
+            </div>
+            <div>
+              <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-1">API Key mới <span class="text-neutral-600">(để trống = giữ cũ)</span></label>
+              <input name="apiKey" type="password" placeholder="••••••••"
+                class="rounded-xl text-white text-sm w-full px-3 py-2 bg-white/5 border border-white/10 placeholder:text-white/20 focus:outline-none focus:border-white/30 transition">
+            </div>
+            <div>
+              <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-1">Loại Panel</label>
+              <div class="relative">
+                <select name="panelType"
+                  class="appearance-none rounded-xl text-white text-sm w-full px-3 pr-8 py-2 bg-white/5 border border-white/10 focus:outline-none cursor-pointer">
+                  <option value="pterodactyl" class="bg-neutral-900" <%= remote.panelType === 'pterodactyl' ? 'selected' : '' %>>Pterodactyl</option>
+                  <option value="pelican"     class="bg-neutral-900" <%= remote.panelType === 'pelican'     ? 'selected' : '' %>>Pelican</option>
+                  <option value="skyport"     class="bg-neutral-900" <%= remote.panelType === 'skyport'     ? 'selected' : '' %>>Skyport</option>
+                  <option value="other"       class="bg-neutral-900" <%= remote.panelType === 'other'       ? 'selected' : '' %>>Other</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-neutral-400">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-1">Owner</label>
+              <div class="relative">
+                <select name="ownerId"
+                  class="appearance-none rounded-xl text-white text-sm w-full px-3 pr-8 py-2 bg-white/5 border border-white/10 focus:outline-none cursor-pointer">
+                  <% users.forEach(u => { %>
+                  <option value="<%= u.userId %>" class="bg-neutral-900" <%= u.userId === remote.ownerId ? 'selected' : '' %>><%= u.username %></option>
+                  <% }) %>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-neutral-400">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2 pt-1">
+              <button type="submit" class="flex-1 block rounded-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition text-center">Lưu thay đổi</button>
+            </div>
+          </form>
+          <!-- Delete -->
+          <form action="/remote-instances/delete/<%= remote.id %>" method="POST" class="mt-3">
+            <button type="submit" onclick="return confirm('Xoá panel này?')"
+              class="w-full block rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-lg hover:bg-red-500 transition text-center opacity-[0.8]">Xoá panel</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<%- include('../components/footer') %>
+
+<script>
+function runPing() {
+  const spin    = document.getElementById('ping-spin');
+  const btnPing = document.getElementById('btn-ping');
+  const st      = document.getElementById('ping-status');
+  const lat     = document.getElementById('ping-latency');
+  const http    = document.getElementById('ping-http');
+  const tok     = document.getElementById('ping-token');
+  const extra   = document.getElementById('ping-extra');
+  const srv     = document.getElementById('ping-server-header');
+  const pag     = document.getElementById('ping-pagination');
+
+  spin.classList.remove('hidden');
+  btnPing.disabled = true;
+
+  fetch('/remote-instances/ping/<%= remote.id %>')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      spin.classList.add('hidden');
+      btnPing.disabled = false;
+
+      if (d.online) {
+        st.textContent  = 'Online';
+        st.className    = 'text-sm font-semibold text-green-400';
+        lat.textContent = d.latency + ' ms';
+        lat.className   = d.latency < 300 ? 'text-sm font-semibold text-green-400' : d.latency < 800 ? 'text-sm font-semibold text-yellow-400' : 'text-sm font-semibold text-red-400';
+        http.textContent = d.status;
+        http.className   = d.status === 200 ? 'text-sm font-semibold text-green-400' : 'text-sm font-semibold text-yellow-400';
+        tok.textContent  = d.tokenValid ? 'Hợp lệ' : 'Lỗi auth';
+        tok.className    = d.tokenValid ? 'text-sm font-semibold text-green-400' : 'text-sm font-semibold text-red-400';
+
+        if (d.serverHeader || d.pagination) {
+          extra.classList.remove('hidden');
+          srv.textContent = d.serverHeader ? 'Server: ' + d.serverHeader : '';
+          if (d.pagination) {
+            pag.textContent = 'Tổng: ' + d.pagination.total + ' · Trang ' + d.pagination.current_page + '/' + d.pagination.total_pages;
+          }
+        }
+        window.showPopup && window.showPopup('success', 'Ping thành công', d.latency + 'ms · HTTP ' + d.status);
+      } else {
+        st.textContent  = 'Offline';
+        st.className    = 'text-sm font-semibold text-red-400';
+        lat.textContent = d.latency ? d.latency + ' ms' : '—';
+        lat.className   = 'text-sm font-semibold text-red-400';
+        http.textContent = '—';
+        tok.textContent  = '—';
+        window.showPopup && window.showPopup('error', 'Không kết nối được', d.error || 'Panel offline hoặc không phản hồi.');
+      }
+    })
+    .catch(function(e) {
+      spin.classList.add('hidden');
+      btnPing.disabled = false;
+      st.textContent  = 'Error';
+      st.className    = 'text-sm font-semibold text-red-400';
+      window.showPopup && window.showPopup('error', 'Lỗi ping', e.message);
+    });
+}
+
+// Auto-ping on load
+document.addEventListener('DOMContentLoaded', runPing);
+</script>

@@ -1,0 +1,266 @@
+<%- include('../../components/template') %>
+
+<main id="content">
+   <div class="bg-transparent">
+      <div class="sm:flex sm:items-center px-8 pt-4">
+         <div class="sm:flex-auto">
+            <h1 class="text-base font-medium leading-6 text-white"><%= req.translations.settings %></h1>
+            <p class="mt-1 tracking-tight text-sm text-neutral-500"><%= req.translations.changeSettings %></p>
+         </div>
+      </div>
+   </div>
+   <%- include('../../components/settings') %>
+
+   <!-- General -->
+   <div class="flex flex-col bg-white/5 mx-8 mt-8 mb-5 pt-0 rounded-xl overflow-hidden">
+      <h1 class="text-white text-[15px] px-5 py-3.5 w-full bg-white/5 font-medium"><%= req.translations.general %></h1>
+      <div class="flex flex-col gap-5 px-6 py-5">
+         <!-- Row 1: Name + Logo -->
+         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
+            <!-- Panel Name -->
+            <div>
+               <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-2"><%= req.translations.panelName %></label>
+               <form action="/admin/settings/change/name" method="POST" class="flex gap-2">
+                  <input id="name" name="name" type="text"
+                     class="rounded-xl text-white text-sm w-full px-3 py-2 bg-white/5 border border-white/10 placeholder:text-white/25 focus:outline-none focus:border-white/25 transition"
+                     value="<%= name %>" placeholder="<%= name %>" required>
+                  <button type="submit" class="shrink-0 rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-2 text-xs font-medium transition"><%= req.translations.save %></button>
+               </form>
+            </div>
+            <!-- Panel Logo -->
+            <div>
+               <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-2"><%= req.translations.panelLogo %></label>
+               <form action="/admin/settings/change/logo" method="POST" enctype="multipart/form-data" class="flex flex-col gap-2.5">
+                  <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                     <input id="useImage" name="useImage" type="checkbox" class="sr-only peer">
+                     <div class="relative w-9 h-5 rounded-full bg-white/15 peer-checked:bg-indigo-500 transition after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-4 after:h-4 after:rounded-full after:bg-white after:transition after:peer-checked:translate-x-4"></div>
+                     <span class="text-neutral-400 text-sm"><%= req.translations.image %></span>
+                  </label>
+                  <div id="imageUploadBox" class="hidden">
+                     <input type="file" name="logo" id="logo" accept="image/*"
+                        class="block w-full text-xs text-neutral-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-white/10 file:text-neutral-300 hover:file:bg-white/20 transition">
+                  </div>
+                  <input type="hidden" name="type" id="logoType" value="none">
+                  <button id="logoButton" type="submit" class="w-fit rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-2 text-xs font-medium transition"><%= req.translations.removeLogo %></button>
+               </form>
+            </div>
+         </div>
+         <!-- Row 2: Toggles side by side -->
+         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
+            <!-- Register page -->
+            <div>
+               <form action="/admin/settings/toggle/register" method="POST">
+                  <label class="text-neutral-400 text-sm tracking-tight mb-2 block">
+                     <%= req.translations.registerPage %>
+                     <% if (settings.register === true) { %><span class="font-medium text-green-500 ml-1"><%= req.translations.enabled %></span><% } else { %><span class="font-medium text-red-500 ml-1"><%= req.translations.disabled %></span><% } %>
+                  </label>
+                  <div class="flex">
+                     <% if (settings.register === true) { %>
+                     <button type="submit" class="block rounded-l-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition"><%= req.translations.disable %></button>
+                     <button type="button" class="block rounded-r-lg bg-green-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled><%= req.translations.enable %></button>
+                     <% } else { %>
+                     <button type="button" class="block rounded-l-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled><%= req.translations.disable %></button>
+                     <button type="submit" class="block rounded-r-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition"><%= req.translations.enable %></button>
+                     <% } %>
+                  </div>
+               </form>
+            </div>
+            <!-- Force verify -->
+            <div>
+               <form action="/admin/settings/toggle/force-verify" method="POST">
+                  <label class="text-neutral-400 text-sm tracking-tight mb-2 block">
+                     <%= req.translations.forceVerifyEmail %>
+                     <% if (settings.forceVerify === true) { %><span class="font-medium text-green-500 ml-1"><%= req.translations.enabled %></span><% } else { %><span class="font-medium text-red-500 ml-1"><%= req.translations.disabled %></span><% } %>
+                  </label>
+                  <div class="flex">
+                     <% if (settings.forceVerify === true) { %>
+                     <button type="submit" class="block rounded-l-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition"><%= req.translations.disable %></button>
+                     <button type="button" class="block rounded-r-lg bg-green-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled><%= req.translations.enable %></button>
+                     <% } else { %>
+                     <button type="button" class="block rounded-l-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled><%= req.translations.disable %></button>
+                     <button type="submit" class="block rounded-r-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition"><%= req.translations.enable %></button>
+                     <% } %>
+                  </div>
+               </form>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <!-- Language Settings -->
+   <div class="flex flex-col bg-white/5 mx-8 mb-5 pt-0 rounded-xl overflow-hidden">
+      <h1 class="text-white text-[15px] px-5 py-3.5 w-full bg-white/5 font-medium"><%= req.translations.defaultLanguage %></h1>
+      <div class="px-6 py-5">
+         <form action="/admin/settings/change/language" method="POST" class="flex items-end gap-3">
+            <div class="flex flex-col gap-1.5">
+               <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium"><%= req.translations.defaultLanguage %></label>
+               <div class="relative">
+                  <select name="defaultLanguage"
+                     class="appearance-none rounded-xl text-white text-sm px-3 pr-9 py-2 bg-white/5 border border-white/10 focus:outline-none focus:border-white/25 transition cursor-pointer min-w-[160px]">
+                     <% languages.forEach(function(language) { %>
+                     <option value="<%= language %>" class="bg-neutral-900" <%= (settings.defaultLanguage || 'en') === language ? 'selected' : '' %>>
+                        <%= req.translations[language] || language %>
+                     </option>
+                     <% }); %>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-neutral-400">
+                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+               </div>
+            </div>
+            <button type="submit" class="shrink-0 rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-2 text-xs font-medium transition"><%= req.translations.saveLanguageSettings %></button>
+         </form>
+      </div>
+   </div>
+
+   <!-- Background Music Settings -->
+   <div class="flex flex-col bg-white/5 mx-8 mb-5 pt-0 rounded-xl overflow-hidden">
+      <h1 class="text-white text-[15px] px-5 py-3.5 w-full bg-white/5 font-medium"><%= req.translations.backgroundMusic %></h1>
+      <div class="px-6 py-5">
+         <form action="/admin/settings/change/music" method="POST" class="flex flex-col gap-4 max-w-lg">
+            <div>
+               <label class="text-neutral-400 text-sm tracking-tight mb-2 block">
+                  <%= req.translations.backgroundMusic %>
+                  <% if (settings.backgroundMusic && settings.backgroundMusic.enabled) { %><span class="font-medium text-green-500 ml-1"><%= req.translations.enabled %></span><% } else { %><span class="font-medium text-red-500 ml-1"><%= req.translations.disabled %></span><% } %>
+               </label>
+               <div class="flex flex-col sm:flex-row mb-4">
+                  <% if (settings.backgroundMusic && settings.backgroundMusic.enabled) { %>
+                  <input type="hidden" name="musicEnabled" value="">
+                  <button type="submit" name="musicAction" value="disable" class="block rounded-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition sm:rounded-l-lg sm:rounded-r-none">Tắt</button>
+                  <button type="button" class="block rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white shadow-lg sm:rounded-none sm:rounded-r-lg opacity-[0.7]" disabled>Bật</button>
+                  <% } else { %>
+                  <button type="button" class="block rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-lg sm:rounded-l-lg sm:rounded-r-none opacity-[0.7]" disabled>Tắt</button>
+                  <input type="hidden" name="musicEnabled" value="on">
+                  <button type="submit" name="musicAction" value="enable" class="block rounded-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition sm:rounded-none sm:rounded-r-lg">Bật</button>
+                  <% } %>
+               </div>
+            </div>
+            <div>
+               <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium block mb-1.5"><%= req.translations.backgroundMusicUrl %></label>
+               <input name="musicUrl" type="text" placeholder="https://example.com/music.mp3"
+                  value="<%= (settings.backgroundMusic && settings.backgroundMusic.url) ? settings.backgroundMusic.url : '' %>"
+                  class="rounded-xl text-white text-sm w-full px-3 py-2 bg-white/5 border border-white/10 placeholder:text-white/20 focus:outline-none focus:border-white/25 transition">
+            </div>
+            <button type="submit" class="w-fit rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-2 text-xs font-medium transition"><%= req.translations.saveMusicSettings %></button>
+         </form>
+      </div>
+   </div>
+
+   <!-- Particle Effects Settings -->
+   <div class="flex flex-col bg-white/5 mx-8 mb-8 pt-0 rounded-xl overflow-hidden">
+      <h1 class="text-white text-[15px] px-5 py-3.5 w-full bg-white/5 font-medium">Particle Effects</h1>
+      <div class="px-6 py-5 flex flex-col gap-5">
+         <!-- Form 1: Toggle particles on/off -->
+         <div>
+            <label class="text-neutral-400 text-sm tracking-tight mb-2 block">
+               Hiệu ứng hạt rơi
+               <% if (settings.particles && settings.particles.enabled) { %><span class="font-medium text-green-500 ml-1"><%= req.translations.enabled %></span><% } else { %><span class="font-medium text-red-500 ml-1"><%= req.translations.disabled %></span><% } %>
+            </label>
+            <form action="/admin/settings/change/particles" method="POST" class="flex">
+               <!-- preserve other values -->
+               <input type="hidden" name="particlesSeasonal" value="<%= (settings.particles && settings.particles.seasonal) ? 'on' : '' %>">
+               <input type="hidden" name="particleCount" value="<%= (settings.particles && settings.particles.count) ? settings.particles.count : 80 %>">
+               <input type="hidden" name="particleSize" value="<%= (settings.particles && settings.particles.size) ? settings.particles.size : 5 %>">
+               <% if (settings.particles && settings.particles.enabled) { %>
+               <button type="submit" name="particlesEnabled" value="off" class="block rounded-l-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition">Tắt</button>
+               <button type="button" class="block rounded-r-lg bg-green-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled>Bật</button>
+               <% } else { %>
+               <button type="button" class="block rounded-l-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled>Tắt</button>
+               <button type="submit" name="particlesEnabled" value="on" class="block rounded-r-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition">Bật</button>
+               <% } %>
+            </form>
+         </div>
+
+         <!-- Form 2: Toggle seasonal on/off -->
+         <div>
+            <label class="text-neutral-400 text-sm tracking-tight mb-2 block">
+               Tự đổi màu theo mùa
+               <span class="text-neutral-600 text-xs ml-1">(Đông=xanh băng · Xuân=hồng · Hè=vàng · Thu=cam)</span>
+               <% if (settings.particles && settings.particles.seasonal) { %><span class="font-medium text-green-500 ml-1"><%= req.translations.enabled %></span><% } else { %><span class="font-medium text-red-500 ml-1"><%= req.translations.disabled %></span><% } %>
+            </label>
+            <form action="/admin/settings/change/particles" method="POST" class="flex">
+               <input type="hidden" name="particlesEnabled" value="<%= (settings.particles && settings.particles.enabled) ? 'on' : '' %>">
+               <input type="hidden" name="particleCount" value="<%= (settings.particles && settings.particles.count) ? settings.particles.count : 80 %>">
+               <input type="hidden" name="particleSize" value="<%= (settings.particles && settings.particles.size) ? settings.particles.size : 5 %>">
+               <% if (settings.particles && settings.particles.seasonal) { %>
+               <button type="submit" name="particlesSeasonal" value="off" class="block rounded-l-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition">Tắt</button>
+               <button type="button" class="block rounded-r-lg bg-green-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled>Bật</button>
+               <% } else { %>
+               <button type="button" class="block rounded-l-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled>Tắt</button>
+               <button type="submit" name="particlesSeasonal" value="on" class="block rounded-r-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition">Bật</button>
+               <% } %>
+            </form>
+         </div>
+
+         <!-- Form 3: Sliders -->
+         <form action="/admin/settings/change/particles" method="POST" class="flex flex-col gap-5 max-w-lg">
+            <input type="hidden" name="particlesEnabled" value="<%= (settings.particles && settings.particles.enabled) ? 'on' : '' %>">
+            <input type="hidden" name="particlesSeasonal" value="<%= (settings.particles && settings.particles.seasonal) ? 'on' : '' %>">
+            <div>
+               <div class="flex justify-between items-center mb-1.5">
+                  <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium">Số lượng hạt</label>
+                  <span id="count-val" class="text-white text-sm font-semibold tabular-nums"><%= (settings.particles && settings.particles.count) ? settings.particles.count : 80 %></span>
+               </div>
+               <input type="range" name="particleCount" min="10" max="500" step="5"
+                  value="<%= (settings.particles && settings.particles.count) ? settings.particles.count : 80 %>"
+                  oninput="document.getElementById('count-val').textContent=this.value"
+                  class="w-full h-1.5 rounded-full accent-violet-500 cursor-pointer">
+               <div class="flex justify-between text-xs text-neutral-600 mt-1"><span>10</span><span>500</span></div>
+            </div>
+            <div>
+               <div class="flex justify-between items-center mb-1.5">
+                  <label class="text-neutral-400 text-xs uppercase tracking-wider font-medium">Kích thước hạt</label>
+                  <span id="size-val" class="text-white text-sm font-semibold tabular-nums"><%= (settings.particles && settings.particles.size) ? settings.particles.size : 5 %></span>
+               </div>
+               <input type="range" name="particleSize" min="2" max="20" step="0.5"
+                  value="<%= (settings.particles && settings.particles.size) ? settings.particles.size : 5 %>"
+                  oninput="document.getElementById('size-val').textContent=this.value"
+                  class="w-full h-1.5 rounded-full accent-violet-500 cursor-pointer">
+               <div class="flex justify-between text-xs text-neutral-600 mt-1"><span>2</span><span>20</span></div>
+            </div>
+            <button type="submit" class="w-fit rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-2 text-xs font-medium transition">Lưu cài đặt hạt</button>
+         </form>
+      </div>
+   </div>
+
+   <!-- Remote Instances Permission -->
+   <div class="flex flex-col bg-white/5 mx-8 mb-8 pt-0 rounded-xl overflow-hidden">
+      <h1 class="text-white text-[15px] px-5 py-3.5 w-full bg-white/5 font-medium">Remote Instances</h1>
+      <div class="px-6 py-5">
+         <label class="text-neutral-400 text-sm tracking-tight mb-2 block">
+            Cho phép người dùng tự thêm Remote Panel
+            <% if (settings.allowUserRemoteInstances) { %><span class="font-medium text-green-500 ml-1"><%= req.translations.enabled %></span><% } else { %><span class="font-medium text-red-500 ml-1"><%= req.translations.disabled %></span><% } %>
+         </label>
+         <p class="text-neutral-600 text-xs mb-3">Khi bật, người dùng thường có thể tự thêm remote panel vào tài khoản của mình.</p>
+         <form action="/admin/settings/toggle/user-remote-instances" method="POST" class="flex">
+            <% if (settings.allowUserRemoteInstances) { %>
+            <button type="submit" class="block rounded-l-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition"><%= req.translations.disable %></button>
+            <button type="button" class="block rounded-r-lg bg-green-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled><%= req.translations.enable %></button>
+            <% } else { %>
+            <button type="button" class="block rounded-l-lg bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-lg opacity-60 cursor-default" disabled><%= req.translations.disable %></button>
+            <button type="submit" class="block rounded-r-lg bg-white px-3 py-2 text-sm font-medium text-neutral-800 shadow-lg hover:bg-neutral-200 transition"><%= req.translations.enable %></button>
+            <% } %>
+         </form>
+      </div>
+   </div>
+
+</main>
+
+<%- include('../../components/footer') %>
+
+<script>
+   document.getElementById('useImage').addEventListener('change', function() {
+      const imageUploadBox = document.getElementById('imageUploadBox');
+      const logoButton = document.getElementById('logoButton');
+      const logoType = document.getElementById('logoType');
+      if (this.checked) {
+         imageUploadBox.classList.remove('hidden');
+         logoButton.textContent = '<%= req.translations.saveNewLogo %>';
+         logoType.value = 'image';
+      } else {
+         imageUploadBox.classList.add('hidden');
+         logoButton.textContent = '<%= req.translations.removeLogo %>';
+         logoType.value = 'none';
+      }
+   });
+</script>

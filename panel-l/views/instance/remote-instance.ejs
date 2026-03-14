@@ -1,0 +1,447 @@
+<%- include('../components/template') %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/addons/fit/fit.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+<style>
+  canvas{position:absolute;left:0;top:0;width:100%!important;height:100%!important}
+  .xterm-viewport{overflow-y:hidden!important}
+  .tab-panel{display:none}.tab-panel.active{display:block}
+  .file-row .file-actions{opacity:0;transition:.12s}.file-row:hover .file-actions{opacity:1}
+  #editor-wrap{display:none}
+  .ctx-menu{position:fixed;z-index:1000;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);border-radius:.75rem;min-width:155px;padding:4px;box-shadow:0 8px 32px rgba(0,0,0,.5);display:none}
+  .ctx-item{padding:7px 12px;font-size:12px;color:#ccc;cursor:pointer;border-radius:.5rem;display:flex;align-items:center;gap:8px}
+  .ctx-item:hover{background:rgba(255,255,255,.08);color:#fff}
+  .ctx-item.danger{color:#f87171}.ctx-item.danger:hover{background:rgba(239,68,68,.1)}
+</style>
+
+<main class="overflow-hidden" id="content">
+  <div class="bg-transparent">
+    <div class="sm:flex sm:items-center px-8 pt-4">
+      <div class="sm:flex-auto">
+        <h1 class="text-base font-medium leading-6 text-white flex items-center gap-2 flex-wrap">
+          <%= instance.Name %>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 font-normal capitalize">Remote &middot; <%= instance._remoteProxy.panelType %></span>
+          <% if (instance._remoteProxy.allocation) { %>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-white/8 text-neutral-400 font-mono"><%= instance._remoteProxy.allocation.ip %>:<%= instance._remoteProxy.allocation.port %></span>
+          <% } %>
+        </h1>
+        <p class="mt-1 tracking-tight text-sm text-neutral-500"><%= remote ? remote.displayName : instance._remoteProxy.remoteId %> | <span class="font-mono text-xs"><%= instance._remoteProxy.serverId %></span></p>
+      </div>
+      <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex gap-2.5 items-center">
+        <button id="startButton" class="block rounded-xl bg-emerald-600 px-3 py-2 text-center text-sm font-medium text-white shadow-lg hover:bg-emerald-500 transition">Start</button>
+        <button id="restartButton" class="block rounded-xl bg-white/20 px-3 py-2 text-center text-sm font-medium text-white shadow-lg hover:bg-white/25 transition">Restart</button>
+        <button id="stopButton" class="block rounded-xl bg-red-600 px-3 py-2 text-center text-sm font-medium text-white shadow-lg hover:bg-red-500 transition">Stop</button>
+        <button id="killButton" class="hidden rounded-xl bg-red-900 border border-red-700/50 px-3 py-2 text-center text-sm font-medium text-red-300 shadow-lg hover:bg-red-800 transition">Force Kill</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="mt-5 ml-8 mb-4">
+    <nav class="flex">
+      <ul class="flex min-w-full flex-none gap-x-2 text-sm font-normal leading-6 text-neutral-400">
+        <li><button onclick="switchTab('console')" id="tab-console" class="tab-trigger text-white font-medium border border-transparent bg-white/10 py-2 px-3 rounded-xl shadow-sm flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="size-4 mr-1"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm-91,94.25-40,32a8,8,0,1,1-10-12.5L107.19,128,75,102.25a8,8,0,1,1,10-12.5l40,32a8,8,0,0,1,0,12.5ZM176,168H136a8,8,0,0,1,0-16h40a8,8,0,0,1,0,16Z"/></svg>Console
+        </button></li>
+        <li><button onclick="switchTab('files')" id="tab-files" class="tab-trigger py-2 px-3 transition border hover:bg-white/5 border-transparent hover:text-white hover:shadow rounded-xl flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="size-4 mr-1"><path d="M245,110.64A16,16,0,0,0,232,104H216V88a16,16,0,0,0-16-16H130.67L102.94,51.2A16.14,16.14,0,0,0,93.06,48H40A16,16,0,0,0,24,64V208h0a8,8,0,0,0,8,8H211.1a8,8,0,0,0,7.59-5.47l28.49-85.47A16.05,16.05,0,0,0,245,110.64Z"/></svg>Files
+        </button></li>
+        <% if (remote) { %><li><a href="<%= remote.panelUrl %>/server/<%= instance._remoteProxy.serverId %>" target="_blank" class="py-2 px-3 transition border hover:bg-white/5 border-transparent hover:text-white hover:shadow rounded-xl flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor" class="size-4 mr-1"><path d="M224,104a8,8,0,0,1-16,0V59.32l-82.34,82.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></svg>Open in <%= instance._remoteProxy.panelType %>
+        </a></li><% } %>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Stats: 6 cards -->
+  <div class="mt-2 ml-8 mb-4 mr-8">
+    <dl class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div class="overflow-hidden rounded-xl bg-white/5 px-4 py-4 shadow relative"><canvas id="statusChart" class="absolute inset-0"></canvas><div class="relative z-10"><dt class="text-xs font-medium text-neutral-400">Status</dt><dd id="stat-status" class="mt-1 text-base font-medium text-neutral-400">-</dd></div></div>
+      <div class="overflow-hidden rounded-xl bg-white/5 px-4 py-4 shadow relative"><canvas id="ramChart" class="absolute inset-0"></canvas><div class="relative z-10"><dt class="text-xs font-medium text-neutral-400">RAM</dt><dd id="stat-ram" class="mt-1 text-sm font-medium text-white">-</dd></div></div>
+      <div class="overflow-hidden rounded-xl bg-white/5 px-4 py-4 shadow relative"><canvas id="cpuChart" class="absolute inset-0"></canvas><div class="relative z-10"><dt class="text-xs font-medium text-neutral-400">CPU</dt><dd id="stat-cpu" class="mt-1 text-base font-medium text-white">-</dd></div></div>
+      <div class="overflow-hidden rounded-xl bg-white/5 px-4 py-4 shadow relative"><canvas id="diskChart" class="absolute inset-0"></canvas><div class="relative z-10"><dt class="text-xs font-medium text-neutral-400">Disk</dt><dd id="stat-disk" class="mt-1 text-base font-medium text-white">-</dd></div></div>
+      <div class="overflow-hidden rounded-xl bg-white/5 px-4 py-4 shadow relative"><canvas id="netChart" class="absolute inset-0"></canvas><div class="relative z-10"><dt class="text-xs font-medium text-neutral-400">Network</dt><dd class="mt-1 text-xs font-medium text-white space-y-0.5"><div>RX <span id="stat-netrx">-</span></div><div>TX <span id="stat-nettx">-</span></div></dd></div></div>
+      <div class="overflow-hidden rounded-xl bg-white/5 px-4 py-4 shadow"><dt class="text-xs font-medium text-neutral-400">IP : Port</dt><% if (instance._remoteProxy.allocation) { %><dd class="mt-1 text-xs font-mono font-medium text-white break-all"><%= instance._remoteProxy.allocation.ip %>:<%= instance._remoteProxy.allocation.port %></dd><% } else { %><dd class="mt-1 text-xs text-neutral-600 italic">N/A - Re-sync</dd><% } %></div>
+    </dl>
+  </div>
+
+  <!-- CONSOLE -->
+  <div id="panel-console" class="tab-panel active px-8 mb-8">
+    <div class="bg-[#101010]/50 rounded-t-xl p-4" style="min-height:420px"><div id="terminal"></div></div>
+    <input id="input" type="text" autocomplete="off" placeholder="Send a command..." class="w-full px-4 py-3 bg-[#101010]/30 text-white rounded-b-xl text-sm border-t border-transparent focus:ring-transparent focus:border-transparent placeholder:font-medium placeholder:text-neutral-500">
+  </div>
+
+  <!-- FILES -->
+  <div id="panel-files" class="tab-panel px-8 mb-8">
+    <!-- Toolbar -->
+    <div class="flex items-center gap-2 mb-3 flex-wrap">
+      <div id="breadcrumb" class="flex items-center gap-1 text-sm flex-1 min-w-0 overflow-x-auto whitespace-nowrap py-1 pr-2"></div>
+      <div class="flex gap-2 shrink-0 flex-wrap items-center">
+        <button onclick="loadFiles(currentDir)" title="Refresh" class="rounded-xl bg-white/8 hover:bg-white/15 text-neutral-300 hover:text-white px-3 py-1.5 text-xs font-medium transition border border-white/10 flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a96,96,0,1,1-21.95-61.09,8,8,0,1,1-12.49,10A80,80,0,1,0,207.6,136H168a8,8,0,0,1,0-16h48a8,8,0,0,1,8,8Z"/></svg>
+          Refresh
+        </button>
+        <button onclick="promptNewFile()" class="rounded-xl bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/30 text-indigo-300 hover:text-indigo-200 px-3 py-1.5 text-xs font-medium transition flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"/></svg>
+          New File
+        </button>
+        <button onclick="promptNewFolder()" class="rounded-xl bg-amber-600/20 hover:bg-amber-600/40 border border-amber-500/30 text-amber-300 hover:text-amber-200 px-3 py-1.5 text-xs font-medium transition flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 256 256"><path d="M245,110.64A16,16,0,0,0,232,104H216V88a16,16,0,0,0-16-16H130.67L102.94,51.2A16.14,16.14,0,0,0,93.06,48H40A16,16,0,0,0,24,64V208h0a8,8,0,0,0,8,8H211.1a8,8,0,0,0,7.59-5.47l28.49-85.47A16.05,16.05,0,0,0,245,110.64Z"/></svg>
+          New Folder
+        </button>
+        <!-- Upload button -->
+        <label class="rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/30 text-emerald-300 hover:text-emerald-200 px-3 py-1.5 text-xs font-medium transition flex items-center gap-1.5 cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 256 256"><path d="M240,136v64a16,16,0,0,1-16,16H32a16,16,0,0,1-16-16V136a16,16,0,0,1,16-16H80a8,8,0,0,1,0,16H32v64H224V136H176a8,8,0,0,1,0-16h48A16,16,0,0,1,240,136ZM85.66,77.66,120,43.31V128a8,8,0,0,0,16,0V43.31l34.34,34.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,77.66Z"/></svg>
+          Upload
+          <input type="file" id="upload-input" multiple class="hidden" onchange="uploadFiles(this.files)">
+        </label>
+        <!-- Multi-select actions -->
+        <div id="multi-actions" class="hidden items-center gap-2">
+          <span id="sel-count" class="text-xs text-neutral-400 font-medium"></span>
+          <button onclick="deleteSelected()" class="rounded-xl bg-red-700/20 hover:bg-red-600/40 border border-red-600/30 text-red-400 hover:text-red-300 px-3 py-1.5 text-xs font-medium transition flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192Z"/></svg>
+            Xoá đã chọn
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Upload progress -->
+    <div id="upload-progress" class="hidden mb-3 rounded-xl bg-emerald-900/20 border border-emerald-700/20 px-4 py-3">
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="text-emerald-400 text-xs font-medium">Đang upload...</span>
+        <span id="upload-pct" class="text-emerald-400 text-xs font-mono">0%</span>
+      </div>
+      <div class="w-full bg-white/10 rounded-full h-1.5">
+        <div id="upload-bar" class="bg-emerald-500 h-1.5 rounded-full transition-all" style="width:0%"></div>
+      </div>
+    </div>
+    <div id="file-error" class="hidden rounded-xl bg-red-900/20 border border-red-700/20 px-4 py-3 text-red-400 text-sm mb-3"></div>
+    <!-- File list -->
+    <div class="rounded-xl overflow-hidden border border-white/5 bg-white/[0.02]">
+      <div class="flex items-center gap-3 px-4 py-2.5 border-b border-white/5 bg-white/[0.03]">
+        <input type="checkbox" id="sel-all" onchange="toggleSelectAll(this.checked)" class="rounded border-white/20 bg-white/5 text-indigo-500 cursor-pointer w-4 h-4 shrink-0">
+        <span class="text-xs text-neutral-500 uppercase tracking-wider font-medium flex-1">Tên</span>
+        <span class="text-xs text-neutral-500 uppercase tracking-wider font-medium w-20 text-right hidden sm:block">Kích cỡ</span>
+        <span class="text-xs text-neutral-500 uppercase tracking-wider font-medium w-36 text-right hidden md:block">Sửa lúc</span>
+        <span class="w-32 shrink-0"></span>
+      </div>
+      <div id="file-loading" class="hidden py-12 text-center">
+        <svg class="w-5 h-5 mx-auto animate-spin text-indigo-400 mb-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+        <p class="text-neutral-500 text-xs">Đang tải...</p>
+      </div>
+      <div id="file-list"></div>
+    </div>
+    <!-- Editor -->
+    <div id="editor-wrap" class="mt-5" style="display:none">
+      <div class="flex items-center justify-between mb-2.5 px-1">
+        <div class="flex items-center gap-2 min-w-0 overflow-hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-neutral-500 shrink-0" fill="currentColor" viewBox="0 0 256 256"><path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Z"/></svg>
+          <span id="editor-title" class="text-sm text-white font-mono truncate"></span>
+        </div>
+        <div class="flex gap-2 shrink-0 ml-4">
+          <button onclick="saveFile()" class="rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 text-xs font-semibold transition flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 256 256"><path d="M219.31,72,184,36.69A15.86,15.86,0,0,0,172.69,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V83.31A15.86,15.86,0,0,0,219.31,72ZM168,208H88V152h80Zm32,0H184V152a16,16,0,0,0-16-16H88a16,16,0,0,0-16,16v56H48V48H172.69L200,75.31Z"/></svg>
+            Lưu (Ctrl+S)
+          </button>
+          <button onclick="closeEditor()" class="rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 text-xs font-medium transition">Dong</button>
+        </div>
+      </div>
+      <textarea id="editor-content" class="w-full h-96 bg-[#0d0d0d] text-neutral-200 text-xs font-mono p-4 rounded-xl border border-white/10 focus:outline-none focus:border-indigo-500/50 resize-y leading-relaxed" spellcheck="false"></textarea>
+    </div>
+  </div>
+</main>
+
+<!-- Context Menu -->
+<div id="ctx-menu" class="ctx-menu">
+  <div class="ctx-item" id="ctx-edit">Chỉnh sửa</div>
+  <div class="ctx-item" id="ctx-rename">Đổi tên</div>
+  <div class="ctx-item" id="ctx-decompress">Giải nén</div>
+  <div class="ctx-item danger" id="ctx-delete">Xoá</div>
+</div>
+
+<%- include('../components/footer') %>
+
+<script>
+const instanceId='<%= req.params.id %>';
+const panelType='<%= instance._remoteProxy.panelType %>';
+const protocol=window.location.protocol==='https:'?'wss':'ws';
+const wsPort=window.location.port?':'+window.location.port:'';
+const memLimitMb=<%= (instance._remoteProxy.limits && instance._remoteProxy.limits.memory)||0 %>;
+let term,ws,statsWs,charts={},ramData=[],cpuData=[],diskData=[],netData=[],statusData=[];
+let prevNetRx=0,prevNetTx=0,stopTimer=null;
+
+// - Stop / Kill ---------------------------------------------------------------
+function bindPowerButtons(){
+  document.getElementById('stopButton').onclick=()=>{
+    sendPower('stop');
+    clearTimeout(stopTimer);
+    stopTimer=setTimeout(()=>document.getElementById('killButton').classList.remove('hidden'),8000);
+  };
+  document.getElementById('killButton').onclick=()=>{
+    if(!confirm('Force kill?'))return;
+    sendPower('kill');
+    document.getElementById('killButton').classList.add('hidden');
+    clearTimeout(stopTimer);
+  };
+  ['startButton','restartButton'].forEach(id=>{
+    document.getElementById(id).onclick=()=>{
+      sendPower(id==='startButton'?'start':'restart');
+      document.getElementById('killButton').classList.add('hidden');
+      clearTimeout(stopTimer);
+    };
+  });
+}
+
+// - Tabs -----------------------------------------------------------------------
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-trigger').forEach(b=>{b.classList.remove('text-white','font-medium','bg-white/10');b.classList.add('border-transparent');});
+  document.getElementById('panel-'+name).classList.add('active');
+  const btn=document.getElementById('tab-'+name);
+  if(btn){btn.classList.add('text-white','font-medium','bg-white/10');btn.classList.remove('border-transparent');}
+  if(name==='files'&&!document.getElementById('file-list').innerHTML)loadFiles('/');
+}
+
+// - Terminal -------------------------------------------------------------------
+const baseTheme={foreground:'#c5c9d1',background:'rgba(0,0,0,0)',cursor:'#c5c9d1',selectionBackground:'rgba(255,255,255,.3)',black:'#000',red:'#d16969',green:'#4ec994',yellow:'#d7ba7d',blue:'#569cd6',magenta:'#c586c0',cyan:'#9cdcfe',white:'#d4d4d4',brightBlack:'#808080',brightRed:'#f44747',brightGreen:'#89d185',brightYellow:'#dcdcaa',brightBlue:'#75beff',brightMagenta:'#c586c0',brightCyan:'#9cdcfe',brightWhite:'#fff'};
+function setupTerminal(){
+  term=new Terminal({theme:baseTheme,fontSize:13,fontFamily:'Menlo,monospace',cursorStyle:'block',cursorBlink:true,scrollback:5000});
+  term.open(document.getElementById('terminal'));
+  if(term.fit)term.fit();
+}
+function connectConsole(){
+  if(ws)try{ws.close();}catch(e){}
+  ws=new WebSocket(`${protocol}://${window.location.hostname}${wsPort}/remote-console/${instanceId}`);
+  ws.onopen=()=>term&&term.writeln('\x1b[32m[skyport:remote]\x1b[0m Connected to remote console.');
+  ws.onmessage=e=>term&&term.write(e.data.replace(/\n/g,'\r\n'));
+  ws.onclose=()=>{term&&term.writeln('\x1b[33m[skyport:remote]\x1b[0m Disconnected. Reconnecting in 4s...');setTimeout(connectConsole,4000);};
+  ws.onerror=()=>term&&term.writeln('\x1b[31m[skyport:remote]\x1b[0m Connection error.');
+}
+
+// - Charts ---------------------------------------------------------------------
+function makeChart(id,color){
+  const ctx=document.getElementById(id);if(!ctx)return null;
+  return new Chart(ctx,{type:'line',data:{labels:Array(20).fill(''),datasets:[{data:Array(20).fill(0),borderColor:color,borderWidth:1.5,fill:true,backgroundColor:color.replace(')',',.07)').replace('rgb','rgba'),tension:.4,pointRadius:0}]},options:{responsive:false,animation:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false,min:0}}}});
+}
+function pushChart(chart,arr,val){arr.push(val);if(arr.length>20)arr.shift();chart.data.datasets[0].data=[...arr];chart.update('none');}
+function fmtBytes(b,d=1){if(!b||b===0)return'0 B';const k=1024,s=['B','KB','MB','GB','TB'],i=Math.floor(Math.log(b)/Math.log(k));return parseFloat((b/Math.pow(k,i)).toFixed(d))+' '+s[i];}
+
+// - Stats ----------------------------------------------------------------------
+function connectStats(){
+  statsWs=new WebSocket(`${protocol}://${window.location.hostname}${wsPort}/remote-stats/${instanceId}`);
+  statsWs.onmessage=e=>{
+    let s;try{s=JSON.parse(e.data);}catch{return;}
+    const memB=s.memory_stats?s.memory_stats.usage:0;
+    const limB=memLimitMb>0?memLimitMb*1024*1024:(s.memory_stats?s.memory_stats.limit:0);
+    document.getElementById('stat-ram').textContent=fmtBytes(memB)+' / '+fmtBytes(limB);
+    if(charts.ram)pushChart(charts.ram,ramData,memB/1024);
+    let cpu=s._cpuPercent||0;
+    if(!s._cpuPercent&&s.cpu_stats){const d=s.cpu_stats.cpu_usage.total_usage-(s.precpu_stats?s.precpu_stats.cpu_usage.total_usage:0);const sd=s.cpu_stats.system_cpu_usage-(s.precpu_stats?s.precpu_stats.system_cpu_usage:0);cpu=(d&&sd)?(d/sd)*100:0;}
+    document.getElementById('stat-cpu').textContent=cpu.toFixed(2)+'%';
+    if(charts.cpu)pushChart(charts.cpu,cpuData,cpu);
+    document.getElementById('stat-disk').textContent=fmtBytes(s._diskBytes||0);
+    if(charts.disk)pushChart(charts.disk,diskData,(s._diskBytes||0)/1024);
+    const rx=s._netRxBytes||0,tx=s._netTxBytes||0;
+    document.getElementById('stat-netrx').textContent=fmtBytes(rx);
+    document.getElementById('stat-nettx').textContent=fmtBytes(tx);
+    if(charts.net)pushChart(charts.net,netData,(rx-prevNetRx)/3+(tx-prevNetTx)/3);
+    prevNetRx=rx;prevNetTx=tx;
+    const online=memB>1024;
+    const se=document.getElementById('stat-status');
+    se.textContent=online?'Online':'Offline';se.className='mt-1 text-base font-medium '+(online?'text-emerald-400':'text-red-400');
+    if(online){document.getElementById('killButton').classList.add('hidden');clearTimeout(stopTimer);}
+    if(charts.status)pushChart(charts.status,statusData,online?1:0);
+  };
+  statsWs.onclose=()=>setTimeout(connectStats,5000);
+}
+
+// - Power ----------------------------------------------------------------------
+function sendPower(action){
+  if(ws&&ws.readyState===WebSocket.OPEN&&(panelType==='pterodactyl'||panelType==='pelican')){ws.send(JSON.stringify({event:'set state',args:[action]}));window.showPopup&&window.showPopup('success','Command sent',action);return;}
+  fetch('/instance/'+instanceId+'/power',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action})}).then(r=>r.json()).then(d=>{if(d.success||d.Success)window.showPopup&&window.showPopup('success','Power action sent',action);else window.showPopup&&window.showPopup('error','Error',d.error||'Failed');}).catch(e=>window.showPopup&&window.showPopup('error','Network error',e.message));
+}
+
+// - File Manager ---------------------------------------------------------------
+let currentDir='/',editingFile=null,selectedFiles=new Set(),ctxTarget=null;
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function renderBreadcrumb(dir){
+  const parts=dir==='/'?[]:dir.split('/').filter(Boolean);
+  let html=`<button onclick="loadFiles('/')" class="text-neutral-500 hover:text-white transition text-xs px-1.5 py-0.5 rounded hover:bg-white/5">/</button>`;
+  let path='';
+  parts.forEach((p,i)=>{path+='/'+p;const cur=path;html+='<span class="text-neutral-700 text-xs">/</span>';html+=`<button onclick="loadFiles('${esc(cur)}')" class="text-xs px-1.5 py-0.5 rounded hover:bg-white/5 ${i===parts.length-1?'text-white font-medium':'text-neutral-500 hover:text-white'} transition">${esc(p)}</button>`;});
+  document.getElementById('breadcrumb').innerHTML=html;
+}
+
+function getFileType(name){
+  const ext=(name.split('.').pop()||'').toLowerCase();
+  const code=['js','ts','jsx','tsx','py','php','rb','go','rs','java','c','cpp','cs','sh','bash'];
+  const data=['json','xml','yml','yaml','toml','ini','cfg','conf','env'];
+  const markup=['html','htm','css','scss','sass','md','mdx','txt','svg'];
+  const archive=['zip','tar','gz','tgz','rar','7z','bz2','xz'];
+  const image=['png','jpg','jpeg','gif','webp','ico','bmp'];
+  const media=['mp3','mp4','wav','webm','mkv','avi','mov'];
+  const db=['sql','db','sqlite'];
+  if(code.includes(ext)) return {color:'text-sky-400',label:'code'};
+  if(data.includes(ext)) return {color:'text-amber-400',label:'data'};
+  if(markup.includes(ext)) return {color:'text-violet-400',label:'text'};
+  if(archive.includes(ext)) return {color:'text-emerald-400',label:'zip'};
+  if(image.includes(ext)) return {color:'text-pink-400',label:'img'};
+  if(media.includes(ext)) return {color:'text-orange-400',label:'media'};
+  if(db.includes(ext)) return {color:'text-red-400',label:'db'};
+  if(ext==='log') return {color:'text-neutral-400',label:'log'};
+  return {color:'text-neutral-500',label:'file'};
+}
+function loadFiles(dir){
+  currentDir=dir||'/';selectedFiles.clear();updateMultiActions();
+  renderBreadcrumb(currentDir);
+  const loadEl=document.getElementById('file-loading'),errEl=document.getElementById('file-error'),listEl=document.getElementById('file-list');
+  loadEl.classList.remove('hidden');errEl.classList.add('hidden');listEl.innerHTML='';
+  document.getElementById('sel-all').checked=false;
+  fetch(`/instance/${instanceId}/remote-files?dir=${encodeURIComponent(currentDir)}`)
+    .then(r=>r.json()).then(data=>{
+      loadEl.classList.add('hidden');
+      if(data.error){errEl.textContent=data.error;errEl.classList.remove('hidden');return;}
+      const files=data.data||[];
+      if(!files.length){listEl.innerHTML='<div class="py-12 text-center"><p class="text-neutral-500 text-sm">Thư mục trống</p></div>';return;}
+      files.sort((a,b)=>{const ad=!a.attributes.is_file,bd=!b.attributes.is_file;if(ad!==bd)return ad?-1:1;return a.attributes.name.localeCompare(b.attributes.name);});
+      let html='<div class="divide-y divide-white/[0.03]">';
+      files.forEach(f=>{
+        const attr=f.attributes,isFile=attr.is_file,name=attr.name;
+        const filePath=(currentDir.replace(/\/$/,'')+'/'+name).replace(/\/\//g,'/');
+        const size=attr.size||0,mod=attr.modified_at?attr.modified_at.slice(0,16).replace('T',' '):'';
+        const isArchive=isFile&&/\.(zip|tar|gz|tgz|rar|7z)$/i.test(name);
+        html+=`<div class="file-row flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.04] transition group" oncontextmenu="showCtxMenu(event,'${esc(filePath)}','${esc(name)}',${isFile})">`;
+        html+=`<input type="checkbox" class="file-cb rounded border-white/20 bg-white/5 text-indigo-500 cursor-pointer shrink-0 w-4 h-4" data-path="${esc(filePath)}" data-name="${esc(name)}" onchange="toggleSelect(this)">`;
+        const ft=isFile?getFileType(name):null;
+        const iconHtml=isFile
+          ? `<span class="text-[9px] font-bold uppercase ${ft.color} w-7 shrink-0 text-center leading-none tracking-tight">${ft.label}</span>`
+          : `<span class="text-[9px] font-bold uppercase text-indigo-400 w-7 shrink-0 text-center leading-none tracking-tight">dir</span>`;
+        html+=iconHtml;
+        html+=`<div class="flex-1 min-w-0">`;
+        if(isFile)html+=`<span class="text-sm text-neutral-300 cursor-pointer hover:text-white truncate block font-mono" onclick="openFile('${esc(filePath)}','${esc(name)}')">${esc(name)}</span>`;
+        else html+=`<span class="text-sm text-white font-medium cursor-pointer hover:text-indigo-300 truncate block" onclick="loadFiles('${esc(filePath)}')">${esc(name)}/</span>`;
+        html+=`</div>`;
+        html+=`<span class="text-xs text-neutral-500 w-20 text-right shrink-0 hidden sm:block tabular-nums">${isFile?fmtBytes(size):'-'}</span>`;
+        html+=`<span class="text-xs text-neutral-600 w-36 text-right shrink-0 hidden md:block tabular-nums font-mono">${esc(mod)}</span>`;
+        html+=`<div class="file-actions flex items-center gap-1 shrink-0">`;
+        if(isFile)html+=`<button onclick="openFile('${esc(filePath)}','${esc(name)}')" title="Chỉnh sửa" class="rounded-lg bg-indigo-600/20 hover:bg-indigo-500/40 text-indigo-300 hover:text-indigo-200 px-2.5 py-1 text-xs font-medium transition border border-indigo-500/20">Sửa</button>`;
+        if(isArchive)html+=`<button onclick="decompressFile('${esc(filePath)}','${esc(name)}')" title="Giải nén" class="rounded-lg bg-amber-600/20 hover:bg-amber-500/40 text-amber-300 hover:text-amber-200 px-2.5 py-1 text-xs font-medium transition border border-amber-500/20">Zip</button>`;
+        html+=`<button onclick="promptRename('${esc(filePath)}','${esc(name)}')" title="Đổi tên" class="rounded-lg bg-white/8 hover:bg-white/20 text-neutral-300 hover:text-white px-2.5 py-1 text-xs font-medium transition border border-white/10">Doi ten</button>`;
+        html+=`<button onclick="deleteFile('${esc(filePath)}','${esc(name)}')" title="Xoá" class="rounded-lg bg-red-700/20 hover:bg-red-600/40 text-red-400 hover:text-red-300 px-2.5 py-1 text-xs font-medium transition border border-red-700/20">Xoa</button>`;
+        html+=`</div></div>`;
+      });
+      html+='</div>';listEl.innerHTML=html;
+    }).catch(e=>{loadEl.classList.add('hidden');errEl.textContent='Lỗi mạng: '+e.message;errEl.classList.remove('hidden');});
+}
+
+function toggleSelect(cb){const path=cb.dataset.path,name=cb.dataset.name;if(cb.checked)selectedFiles.add(JSON.stringify({path,name}));else selectedFiles.delete(JSON.stringify({path,name}));updateMultiActions();}
+function toggleSelectAll(checked){document.querySelectorAll('.file-cb').forEach(cb=>{cb.checked=checked;const path=cb.dataset.path,name=cb.dataset.name;if(checked)selectedFiles.add(JSON.stringify({path,name}));else selectedFiles.delete(JSON.stringify({path,name}));});updateMultiActions();}
+function updateMultiActions(){const n=selectedFiles.size;const el=document.getElementById('multi-actions');document.getElementById('sel-count').textContent=n+' đã chọn';el.classList.toggle('hidden',n===0);el.classList.toggle('flex',n>0);}
+
+function showCtxMenu(e,filePath,name,isFile){
+  e.preventDefault();ctxTarget={filePath,name,isFile};
+  const menu=document.getElementById('ctx-menu');
+  document.getElementById('ctx-edit').style.display=isFile?'flex':'none';
+  document.getElementById('ctx-decompress').style.display=(isFile&&/\.(zip|tar|gz|tar\.gz|tgz|rar|7z)$/i.test(name))?'flex':'none';
+  menu.style.display='block';
+  let x=e.clientX,y=e.clientY;
+  if(x+170>window.innerWidth)x=window.innerWidth-175;
+  if(y+160>window.innerHeight)y=window.innerHeight-165;
+  menu.style.left=x+'px';menu.style.top=y+'px';
+}
+document.addEventListener('click',()=>{document.getElementById('ctx-menu').style.display='none';});
+document.getElementById('ctx-edit').onclick=()=>{if(ctxTarget&&ctxTarget.isFile)openFile(ctxTarget.filePath,ctxTarget.name);};
+document.getElementById('ctx-rename').onclick=()=>{if(ctxTarget)promptRename(ctxTarget.filePath,ctxTarget.name);};
+document.getElementById('ctx-delete').onclick=()=>{if(ctxTarget)deleteFile(ctxTarget.filePath,ctxTarget.name);};
+document.getElementById('ctx-decompress').onclick=()=>{if(ctxTarget)decompressFile(ctxTarget.filePath,ctxTarget.name);};
+
+function openFile(filePath,name){
+  editingFile=filePath;
+  document.getElementById('editor-title').textContent=filePath;
+  document.getElementById('editor-content').value='Đang tải...';
+  document.getElementById('editor-wrap').style.display='block';
+  document.getElementById('editor-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+  fetch(`/instance/${instanceId}/remote-file-content?file=${encodeURIComponent(filePath)}`).then(r=>r.text()).then(t=>document.getElementById('editor-content').value=t).catch(e=>{document.getElementById('editor-content').value='Lỗi: '+e.message;});
+}
+function saveFile(){
+  if(!editingFile)return;
+  const content=document.getElementById('editor-content').value;
+  fetch(`/instance/${instanceId}/remote-file-write?file=${encodeURIComponent(editingFile)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content})}).then(r=>r.json()).then(d=>{if(d.success)window.showPopup&&window.showPopup('success','Đã lưu',editingFile);else window.showPopup&&window.showPopup('error','Lưu thất bại',d.error||'Lỗi');}).catch(e=>window.showPopup&&window.showPopup('error','Lỗi mạng',e.message));
+}
+function closeEditor(){editingFile=null;document.getElementById('editor-wrap').style.display='none';document.getElementById('editor-content').value='';}
+
+function deleteFile(filePath,name){
+  if(!confirm(`Xoá "${name}"?`))return;
+  const dir=filePath.substring(0,filePath.lastIndexOf('/'))||'/';
+  const fname=filePath.substring(filePath.lastIndexOf('/')+1);
+  fetch(`/instance/${instanceId}/remote-file-delete`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root:dir,files:[fname]})}).then(r=>r.json()).then(d=>{if(d.success){window.showPopup&&window.showPopup('success','Đã xoá',name);loadFiles(currentDir);}else window.showPopup&&window.showPopup('error','Xoá thất bại',d.error||'Lỗi');}).catch(e=>window.showPopup&&window.showPopup('error','Lỗi mạng',e.message));
+}
+function deleteSelected(){
+  if(!selectedFiles.size||!confirm(`Xoá ${selectedFiles.size} mục?`))return;
+  const items=[...selectedFiles].map(s=>JSON.parse(s));
+  const byDir={};
+  items.forEach(({path,name})=>{const dir=path.substring(0,path.lastIndexOf('/'))||'/';const fname=path.substring(path.lastIndexOf('/')+1);if(!byDir[dir])byDir[dir]=[];byDir[dir].push(fname);});
+  Promise.all(Object.entries(byDir).map(([root,files])=>fetch(`/instance/${instanceId}/remote-file-delete`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root,files})}).then(r=>r.json()))).then(()=>{window.showPopup&&window.showPopup('success','Đã xoá',selectedFiles.size+' mục');selectedFiles.clear();loadFiles(currentDir);}).catch(e=>window.showPopup&&window.showPopup('error','Lỗi',e.message));
+}
+function promptRename(filePath,name){
+  const newName=prompt('Tên mới:',name);if(!newName||newName===name)return;
+  const dir=filePath.substring(0,filePath.lastIndexOf('/'))||'/';const fname=filePath.substring(filePath.lastIndexOf('/')+1);
+  fetch(`/instance/${instanceId}/remote-file-rename`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root:dir,files:[{from:fname,to:newName}]})}).then(r=>r.json()).then(d=>{if(d.success){window.showPopup&&window.showPopup('success','Đã đổi tên',name+' / '+newName);loadFiles(currentDir);}else window.showPopup&&window.showPopup('error','Đổi tên thất bại',d.error||'Lỗi');}).catch(e=>window.showPopup&&window.showPopup('error','Lỗi mạng',e.message));
+}
+function promptNewFile(){
+  const name=prompt('Tên file:');if(!name)return;
+  const fp=(currentDir.replace(/\/$/,'')+'/'+name).replace(/\/\//g,'/');
+  fetch(`/instance/${instanceId}/remote-file-write?file=${encodeURIComponent(fp)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:''})}).then(r=>r.json()).then(d=>{if(d.success){loadFiles(currentDir);openFile(fp,name);}else window.showPopup&&window.showPopup('error','Tạo thất bại',d.error||'Lỗi');}).catch(e=>window.showPopup&&window.showPopup('error','Lỗi mạng',e.message));
+}
+function promptNewFolder(){
+  const name=prompt('Tên thư mục:');if(!name)return;
+  fetch(`/instance/${instanceId}/remote-file-mkdir`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,dir:currentDir})}).then(r=>r.json()).then(d=>{if(d.success){window.showPopup&&window.showPopup('success','Đã tạo thư mục',name);loadFiles(currentDir);}else window.showPopup&&window.showPopup('error','Tạo thất bại',d.error||'Lỗi');}).catch(e=>window.showPopup&&window.showPopup('error','Lỗi mạng',e.message));
+}
+
+function uploadFiles(fileList){
+  if(!fileList||!fileList.length)return;
+  const files=Array.from(fileList);
+  const progWrap=document.getElementById('upload-progress');
+  const bar=document.getElementById('upload-bar');
+  const pct=document.getElementById('upload-pct');
+  progWrap.classList.remove('hidden');
+  let done=0;
+  function uploadNext(i){
+    if(i>=files.length){progWrap.classList.add('hidden');bar.style.width='0%';pct.textContent='0%';loadFiles(currentDir);document.getElementById('upload-input').value='';return;}
+    const f=files[i];
+    const fd=new FormData();fd.append('file',f);fd.append('dir',currentDir);
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST',`/instance/${instanceId}/remote-file-upload`);
+    xhr.upload.onprogress=ev=>{if(ev.lengthComputable){const p=Math.round(((done+ev.loaded/ev.total)/files.length)*100);bar.style.width=p+'%';pct.textContent=p+'%';}};
+    xhr.onload=()=>{done++;const p=Math.round((done/files.length)*100);bar.style.width=p+'%';pct.textContent=p+'%';const d=JSON.parse(xhr.responseText);if(!d.success)window.showPopup&&window.showPopup('warning','Upload lỗi: '+f.name,d.error||'');uploadNext(i+1);};
+    xhr.onerror=()=>{window.showPopup&&window.showPopup('error','Upload thất bại',f.name);uploadNext(i+1);};
+    xhr.send(fd);
+  }
+  uploadNext(0);
+}
+
+function decompressFile(filePath,name){
+  const dir=filePath.substring(0,filePath.lastIndexOf('/'))||'/';
+  const fname=filePath.substring(filePath.lastIndexOf('/')+1);
+  fetch(`/instance/${instanceId}/remote-file-decompress`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({root:dir,file:fname})}).then(r=>r.json()).then(d=>{if(d.success){window.showPopup&&window.showPopup('success','Đã giải nén',name);loadFiles(currentDir);}else window.showPopup&&window.showPopup('error','Giải nén thất bại',d.error||'Lỗi');}).catch(e=>window.showPopup&&window.showPopup('error','Lỗi mạng',e.message));
+}
+
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'&&editingFile){e.preventDefault();saveFile();}
+  if(e.key==='Escape'&&editingFile)closeEditor();
+});
+document.getElementById('input').addEventListener('keypress',e=>{
+  if(e.key==='Enter'){const cmd=e.target.value.trim();if(!cmd)return;e.target.value='';if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({event:'send command',args:[cmd]}));}
+});
+
+document.addEventListener('DOMContentLoaded',()=>{
+  setupTerminal();connectConsole();connectStats();bindPowerButtons();
+  charts.status=makeChart('statusChart','rgb(34,197,94)');
+  charts.ram=makeChart('ramChart','rgb(99,102,241)');
+  charts.cpu=makeChart('cpuChart','rgb(234,179,8)');
+  charts.disk=makeChart('diskChart','rgb(249,115,22)');
+  charts.net=makeChart('netChart','rgb(6,182,212)');
+});
+</script>

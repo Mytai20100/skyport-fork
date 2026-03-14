@@ -1,0 +1,40 @@
+{
+  "name": "skyportd",
+  "version": "0.3.0",
+  "description": "Skyport Daemon",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "configure": "node handlers/configure.js"
+  },
+  "author": "Skyport Team",
+  "license": "MIT",
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "axios": "^1.6.8",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "cat-loggr": "^1.2.2",
+    "chalk": "^4.1.2",
+    "child_process": "^1.0.2",
+    "commander": "^12.1.0",
+    "crypto": "^1.0.1",
+    "express": "^4.19.2",
+    "express-basic-auth": "^1.2.1",
+    "ftp-srv": "^4.6.3",
+    "ftpd": "^0.2.16",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0",
+    "keyv": "^4.5.4",
+    "multer": "^2.0.2",
+    "mysql2": "^3.10.3",
+    "os-utils": "^0.0.14",
+    "path": "^0.12.7",
+    "unzipper": "^0.12.3",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
